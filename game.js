@@ -279,7 +279,7 @@ const maps = {
             { id: 'art_cannon_mold', name: '★ Bronze Cannon Mold', x: 22, y: 13, dir: 'down', isArtifact: true, xpReward: 25,
               dialogue: ['★  BRONZE CANNON MOLD', '64 bronze cannons were cast for the Vasa — each weighing over 1,200 kg.', 'The cannons alone were worth more than the ship itself.', 'Ironically, their weight on two decks was what doomed her.', '+25 Scholar XP earned!']
             },
-            { id: 'boss_shipyard', name: 'Master Shipwright', x: 12, y: 7, dir: 'down', isBoss: true, quizKey: 'quiz1', isSpirit: false,
+            { id: 'boss_shipyard', name: 'Master Shipwright', x: 12, y: 8, dir: 'down', isBoss: true, quizKey: 'quiz1', isSpirit: false,
               colors: { body: '#1a3a6a', skin: PAL.npcSkin, hair: '#d0c080', legs: '#102050', shoes: '#0a1030', satchel: false },
               dialogue: [
                   'So you wish to document the Vasa, young Erik?',
@@ -417,7 +417,7 @@ const maps = {
             { id: 'art_shoe', name: '★ A Sailor\'s Boot', x: 14, y: 3, dir: 'down', isArtifact: true, xpReward: 25,
               dialogue: ['★  A SAILOR\'S BOOT', 'This boot was found on the seabed next to the wreck.', 'Over 700 personal items of clothing were recovered — many still holding the shape of the person who wore them.', 'They were frozen in time on August 10, 1628.', '+25 Scholar XP earned!']
             },
-            { id: 'ghost_king', name: 'Ghost of King Gustav II Adolf', x: 12, y: 7, dir: 'down', isBoss: true, quizKey: 'quiz3', isSpirit: true,
+            { id: 'ghost_king', name: 'Ghost of King Gustav II Adolf', x: 12, y: 8, dir: 'down', isBoss: true, quizKey: 'quiz3', isSpirit: true,
               colors: { body: '#304870', skin: '#c8d8e8', hair: '#d8d0a8', legs: '#1a2840', shoes: '#101828', satchel: false },
               dialogue: [
                   '...',
@@ -785,13 +785,12 @@ function drawHUD(mapName) {
     const allArtifacts = Object.values(maps).flatMap(m => m.npcs).filter(n => n.isArtifact);
     const foundArt = allArtifacts.filter(n => playerData.talkedToNpcs.includes(n.id)).length;
     ctx.fillStyle = foundArt === allArtifacts.length ? PAL.gold : '#a09040';
-    ctx.font = '8px "Press Start 2P"';
     ctx.textAlign = 'left';
     ctx.fillText(`★ ${foundArt}/${allArtifacts.length}`, 310, 24);
 
     ctx.fillStyle = '#a0b0d0';
     ctx.textAlign = 'right';
-    ctx.fillText(`LV ${playerData.level}  XP ${playerData.xp}/${playerData.level*50}`, 790, 24);
+    ctx.fillText(`LV ${playerData.level}  ${playerData.xp} XP`, 790, 24);
 
     ctx.fillStyle = PAL.hpGreen;
     ctx.textAlign = 'center';
@@ -909,6 +908,8 @@ function updateOverworld() {
                 let dlgLines;
                 if (npc.triggersEnding) {
                     dlgLines = playerData.defeatedBosses.length >= 3 ? npc.dialogue : (npc.earlyDialogue || npc.dialogue);
+                } else if (npc.giveBoat && playerData.hasBoat) {
+                    dlgLines = ['Your rowboat is tied right here. Safe sailing, Erik.'];
                 } else {
                     dlgLines = alreadyTalked ? [npc.dialogue[0]] : npc.dialogue;
                 }
@@ -1065,7 +1066,7 @@ function drawDialogue() {
     ctx.fillStyle = '#505878';
     ctx.font = '8px "Press Start 2P"';
     ctx.textAlign = 'right';
-    ctx.fillText(`${dialogueIndex+1}/${currentDialogue.length}`, 760, boxY+boxH-8);
+    if (currentDialogue.length > 1) ctx.fillText(`${dialogueIndex+1}/${currentDialogue.length}`, 760, boxY+boxH-8);
     ctx.textAlign = 'left';
 }
 
@@ -1381,7 +1382,6 @@ function drawVictory() {
         ctx.fillStyle = '#8090b0'; ctx.font='8px "Press Start 2P"';
         ctx.fillText('Press SPACE to continue', 400, 560);
     }
-    if (!battleState.resultTimer) battleState.resultTimer = 0;
     battleState.resultTimer++;
     if (battleState.resultTimer > 60 && (keyJustPressed(' ') || keyJustPressed('Enter'))) {
         const qk = battleState.quizKey;
