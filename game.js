@@ -22,7 +22,7 @@ let playerData = {
     questionsAnswered: 0, correctAnswers: 0,
     defeatedBosses: [], inventory: [],
     currentMap: 'shipyard', name: 'Young Erik',
-    hasLogbook: false, visitedArtifacts: [], talkedToNpcs: []
+    hasLogbook: false, hasBoat: false, visitedArtifacts: [], talkedToNpcs: []
 };
 
 let currentDialogue = null, dialogueIndex = 0, dialogueCharIndex = 0, dialogueTimer = 0;
@@ -57,10 +57,10 @@ const PAL = {
 
 // ── Prologue ──────────────────────────────────────────────────────────────────
 const prologueScenes = [
-    { title: 'Stockholm, Sweden — 1628', text: 'Sweden is the greatest power in northern Europe. King Gustav II Adolf commands vast armies and a mighty fleet.', bg: 'navy' },
-    { title: 'The Royal Shipyard', text: 'For two years, hundreds of workers have labored to build the most magnificent warship ever seen. They call her the Vasa.', bg: 'wood' },
-    { title: 'A Ship Like No Other', text: 'Sixty-four bronze cannons. Seven hundred carved sculptures. Painted red and gold — a floating palace of war fit for a king.', bg: 'gold' },
-    { title: 'Your Quest Begins', text: 'You are Erik, apprentice shipwright. Your master has one final task: learn the truth about this great ship — and document it for history.', bg: 'blue' },
+    { title: 'Stockholm — August 10, 1628', text: 'The most magnificent warship ever built has sunk. On her very first voyage. In front of the whole city. In under an hour.', bg: 'navy' },
+    { title: 'The Arrest', text: 'Captain Söfring Hansson has been seized and thrown in prison. The king demands someone answer for this disaster. An execution may follow.', bg: 'wood' },
+    { title: 'The Hidden Warning', text: 'You are Erik — apprentice of the late Master Henrik, the Vasa\'s original architect. He warned the king: two gun decks would make her dangerously top-heavy. The king refused to listen.', bg: 'gold' },
+    { title: 'Your Mission', text: 'Master Henrik\'s notes survive. The witnesses are here. Gather three testimonies. Prove the Vasa was built wrong — not sailed wrong. Save an innocent man. Document the truth.', bg: 'blue' },
 ];
 
 // ── Quiz Sets ─────────────────────────────────────────────────────────────────
@@ -120,7 +120,7 @@ function generateShipyardMap() {
         [4,2,5,5,5,4,2,2,2,2,2,17,2,2,2,2,4,5,5,5,4,2,2,2,4],
         [4,2,5,2,5,4,2,2,2,2,2,17,2,2,2,2,4,2,2,2,4,2,2,2,4],
         [4,2,5,2,5,4,2,2,2,2,2,17,2,2,2,2,4,2,18,2,4,2,2,2,4],
-        [4,2,4,4,4,4,2,2,17,17,17,17,17,17,2,2,4,4,4,4,4,2,2,2,4],
+        [4,2,4,4,4,4,2,2,17,17,17,17,17,17,2,2,4,4,11,4,4,2,2,2,4],
         [4,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,4],
         [4,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,4],
         [4,11,11,11,11,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,4],
@@ -215,7 +215,7 @@ const maps = {
         name: 'Royal Shipyard — Stockholm, 1628',
         tiles: generateShipyardMap(),
         width: COLS, height: ROWS,
-        warps: [{ x: 4, y: 17, target: 'harbor', toX: 4, toY: 8, requires: 'quiz1' }],
+        warps: [{ x: 4, y: 17, target: 'harbor', toX: 4, toY: 9, requires: 'quiz1' }],
         npcs: [
             { id: 'bjorn', name: 'Bjorn the Sawyer', x: 7, y: 3, dir: 'down', isSpirit: false,
               colors: { body: '#4a2a10', skin: PAL.npcSkin, hair: '#806040', legs: '#3a2010', shoes: '#2a1808', satchel: false },
@@ -271,8 +271,7 @@ const maps = {
         name: 'Stockholm Harbor — August 10, 1628',
         tiles: generateHarborMap(),
         width: COLS, height: ROWS,
-        warps: [{ x: 4, y: 8, target: 'shipyard', toX: 4, toY: 16 },
-                { x: 4, y: 8, target: 'museum', toX: 4, toY: 8, requires: 'quiz2' }],
+        warps: [{ x: 4, y: 8, target: 'shipyard', toX: 4, toY: 16 }],
         npcs: [
             { id: 'per', name: 'Per the Harbor Worker', x: 8, y: 6, dir: 'down', isSpirit: false,
               colors: { body: '#3a5a8a', skin: PAL.npcSkin, hair: '#8a6040', legs: '#1a3060', shoes: '#101828', satchel: false },
@@ -280,39 +279,68 @@ const maps = {
                   'I was right here when she sailed this morning. August 10th — I will never forget it.',
                   'The crowd cheered as the Vasa left the dock. She looked magnificent.',
                   'Then a breeze came from the south. She tilted. Just slightly at first.',
-                  'Then the lower gun ports — they were open, for the guns to fire a salute — water poured in.',
-                  'She sank in under an hour. Right there, only 1,300 meters from the dock.'
+                  'Then the lower gun ports — open for the salute — water poured straight in.',
+                  'Captain Hansson was screaming orders. He tried everything. The ship just... would not right herself.'
               ]
             },
-            { id: 'maria', name: 'Maria', x: 17, y: 3, dir: 'left', isSpirit: false,
+            { id: 'maria', name: 'Maria', x: 20, y: 6, dir: 'left', isSpirit: false,
               colors: { body: '#8a3060', skin: PAL.npcSkin, hair: '#503020', legs: '#5a1040', shoes: '#3a0820', satchel: false },
               dialogue: [
                   'I brought my children to watch the great ship sail. It was supposed to be a celebration.',
                   'When she began to tilt, people on the shore laughed — they thought it was part of the show.',
                   'Then she went under. The screaming started.',
                   'Between thirty and fifty souls lost. On a calm day, in the harbor, in front of the whole city.',
-                  'The king will not be pleased. Someone will answer for this.'
+                  'Captain Hansson did not deserve this blame. I watched with my own eyes — no captain could have saved that ship.'
               ]
             },
-            { id: 'sailor_erik', name: 'Sailor Lars', x: 10, y: 7, dir: 'right', isSpirit: false,
+            { id: 'sailor_lars', name: 'Sailor Lars', x: 10, y: 7, dir: 'right', isSpirit: false,
               colors: { body: '#204060', skin: PAL.npcSkin, hair: '#404040', legs: '#102030', shoes: '#0a1018', satchel: false },
               dialogue: [
                   'I was on the lower gun deck when she heeled over. I barely got out.',
                   'The water came so fast. I swam up through the darkness.',
-                  'They arrested Captain Sorfring Hansson — blamed him for the sinking.',
-                  'But I ask you: what could the captain do when the ship herself was flawed?',
-                  'No one was ever convicted. The inquiry just... faded away.'
+                  'You want to know the truth? Talk to the Dock Master. He knows where the wreck lies.',
+                  'If you can get out there... the drowned sailors know what really happened.'
+              ]
+            },
+            { id: 'dock_master', name: 'Dock Master Olof', x: 7, y: 9, dir: 'down', isSpirit: false,
+              giveBoat: true,
+              colors: { body: '#4a5a3a', skin: PAL.npcSkin, hair: '#808060', legs: '#2a3a1a', shoes: '#1a2010', satchel: true },
+              dialogue: [
+                  'Ahh, young Erik. Dark day for Stockholm.',
+                  'You want to get out to the wreck? I have a rowboat tied at the south end.',
+                  'Take it. Sail south to the water. Just keep clear of the hull — the current is bad around her.',
+                  'And if you find any of our lost men out there... say a prayer for them.'
               ]
             },
             { id: 'boss_harbor', name: 'Admiral Karl Gyllenhielm', x: 12, y: 8, dir: 'down', isBoss: true, quizKey: 'quiz2', isSpirit: false,
               colors: { body: '#0a2050', skin: PAL.npcSkin, hair: '#c8c0a0', legs: '#061030', shoes: '#040818', satchel: false },
               dialogue: [
-                  'You are documenting this disaster, boy? Good. History must know the truth.',
+                  'You are building a case for the captain, boy? I respect that.',
                   'I ordered the Vasa to sail. The king demanded it. The ship was not ready.',
-                  'But when a king commands, an admiral obeys.',
-                  'If you truly understand what happened here today, answer my questions.'
+                  'Master Henrik warned us — I heard him myself. The king threatened to have him arrested if he delayed again.',
+                  'Before I give you my testimony, prove you understand what happened here.'
               ],
               battleIntro: 'Admiral Gyllenhielm demands you prove your understanding!'
+            },
+            { id: 'ghost_sailor', name: 'Ghost of a Drowned Sailor', x: 3, y: 14, dir: 'down', isSpirit: true,
+              colors: { body: '#1a3a6a', skin: '#c8d8e8', hair: '#d8d0a8', legs: '#102050', shoes: '#0a1030', satchel: false },
+              dialogue: [
+                  'The water... so cold...',
+                  'I was loading the lower cannons when she heeled over.',
+                  'The gun ports were OPEN for the salute. Water poured through instantly.',
+                  'I swear to you: Captain Hansson tried to close them. But it happened too fast for any man to stop.',
+                  'The ship was wrong from the keel up. That is your testimony. Write it down, Erik.'
+              ]
+            },
+            { id: 'diver', name: 'Harbor Diver', x: 21, y: 12, dir: 'left', isSpirit: false,
+              colors: { body: '#2a5a4a', skin: PAL.npcSkin, hair: '#604020', legs: '#1a3a2a', shoes: '#0a2010', satchel: false },
+              dialogue: [
+                  'Whoa! Careful out here in a rowboat.',
+                  'I have been diving on the wreck — salvaging bronze cannons. Worth a fortune.',
+                  'Want to know something strange? The gun ports on the lower deck — they were still open when I dove down.',
+                  'Those ports are far too low for a ship carrying that much weight up top. Any shipwright would know it.',
+                  'Your Captain Hansson did not design those ports. Take that to the court.'
+              ]
             },
         ]
     },
@@ -321,7 +349,7 @@ const maps = {
         name: 'Vasa Museum — Stockholm, 1990',
         tiles: generateMuseumMap(),
         width: COLS, height: ROWS,
-        warps: [{ x: 4, y: 8, target: 'harbor', toX: 4, toY: 8 },
+        warps: [{ x: 4, y: 8, target: 'harbor', toX: 4, toY: 9 },
                 { x: 4, y: 17, target: 'archive', toX: 12, toY: 8, requires: 'quiz3' }],
         npcs: [
             { id: 'guide_sofia', name: 'Tour Guide Sofia', x: 8, y: 6, dir: 'down', isSpirit: false,
@@ -439,17 +467,52 @@ function drawTile(tx, ty, tile, mapName) {
     const x = tx * TILE, y = ty * TILE;
     const animate = (frameCount + tx * 3 + ty * 7) % 60;
     switch(tile) {
-        case 0: // deep water
-            ctx.fillStyle = animate < 30 ? PAL.water : '#0c3870';
+        case 0: { // deep water — Pokémon style
+            const wv0 = (frameCount + tx * 5 + ty * 3) % 90;
+            ctx.fillStyle = wv0 < 45 ? '#0a3060' : '#0c3870';
             ctx.fillRect(x, y, TILE, TILE);
-            if (animate === 0) { ctx.fillStyle='rgba(100,160,255,0.15)'; ctx.fillRect(x+4, y+10, 20, 4); }
+            // Drifting shimmer bands
+            if ((tx + ty * 3 + Math.floor(frameCount / 18)) % 5 === 0) {
+                ctx.fillStyle = 'rgba(80,160,240,0.22)';
+                ctx.fillRect(x + 3, y + 9, 20, 4);
+            }
+            if ((tx * 2 + ty + Math.floor(frameCount / 24)) % 7 === 0) {
+                ctx.fillStyle = 'rgba(100,180,255,0.18)';
+                ctx.fillRect(x + 14, y + 20, 14, 3);
+            }
+            // Sparkle cross — appears briefly on individual tiles
+            const sparkPhase = (tx * 17 + ty * 31 + Math.floor(frameCount / 6)) % 180;
+            if (sparkPhase < 4) {
+                const sa = (4 - sparkPhase) / 4;
+                ctx.fillStyle = `rgba(255,255,255,${sa * 0.85})`;
+                ctx.fillRect(x + 13, y + 12, 5, 1);
+                ctx.fillRect(x + 15, y + 10, 1, 5);
+            }
             break;
-        case 1: // shallow water
-            ctx.fillStyle = PAL.waterLight;
+        }
+        case 1: { // shallow water — lighter, more active
+            const wv1 = (frameCount + tx * 4 + ty * 6) % 60;
+            ctx.fillStyle = wv1 < 30 ? '#1a5090' : '#2060a8';
             ctx.fillRect(x, y, TILE, TILE);
-            ctx.fillStyle='rgba(150,200,255,0.2)';
-            if ((tx+ty+Math.floor(frameCount/20))%3===0) ctx.fillRect(x+2, y+8, 24, 3);
+            // Wave lines scrolling
+            if ((tx + ty + Math.floor(frameCount / 10)) % 3 === 0) {
+                ctx.fillStyle = 'rgba(150,200,255,0.28)';
+                ctx.fillRect(x + 2, y + 6, 24, 4);
+            }
+            if ((tx + ty + Math.floor(frameCount / 15) + 2) % 3 === 0) {
+                ctx.fillStyle = 'rgba(150,200,255,0.22)';
+                ctx.fillRect(x + 4, y + 18, 20, 3);
+            }
+            // Foam sparkle
+            const fPhase = (tx * 13 + ty * 19 + Math.floor(frameCount / 8)) % 120;
+            if (fPhase < 6) {
+                const fa = (6 - fPhase) / 6;
+                ctx.fillStyle = `rgba(255,255,255,${fa * 0.65})`;
+                ctx.fillRect(x + 7, y + 7, 4, 4);
+                ctx.fillRect(x + 19, y + 19, 4, 4);
+            }
             break;
+        }
         case 2: // wood plank
             ctx.fillStyle = PAL.wood;
             ctx.fillRect(x, y, TILE, TILE);
@@ -666,7 +729,7 @@ function drawHUD(mapName) {
     ctx.fillStyle = '#8090b8';
     ctx.font = '7px "Press Start 2P"';
     ctx.textAlign = 'left';
-    ctx.fillText('LOGBOOK QUEST', 590, bY+14);
+    ctx.fillText('TESTIMONIES', 590, bY+14);
     const b = playerData.defeatedBosses;
     ctx.fillStyle = b.includes('quiz1') ? PAL.hpGreen : '#506080';
     ctx.fillText(b.includes('quiz1') ? '✓ Shipyard' : '○ Shipyard', 590, bY+28);
@@ -717,6 +780,10 @@ function updateOverworld() {
         if (nx >= 0 && nx < map.width && ny >= 0 && ny < map.height) {
             const tile = map.tiles[ny][nx];
             const blocked = [4, 5, 6, 10, 13];
+            // Water only walkable in harbor with a boat
+            if (playerData.currentMap === 'harbor' && !playerData.hasBoat) {
+                blocked.push(0, 1);
+            }
             if (!blocked.includes(tile)) {
                 // Check NPC collision
                 const npc = map.npcs.find(n => n.x === nx && n.y === ny);
@@ -743,7 +810,11 @@ function updateOverworld() {
                 startDialogue(alreadyTalked ? [npc.dialogue[0]] : npc.dialogue, () => {
                     if (!alreadyTalked) {
                         playerData.talkedToNpcs.push(npc.id);
-                        if (!playerData.hasLogbook) { playerData.hasLogbook = true; }
+                        if (!playerData.hasLogbook) playerData.hasLogbook = true;
+                        if (npc.giveBoat && !playerData.hasBoat) {
+                            playerData.hasBoat = true;
+                            startDialogue(['You received the ROWBOAT! Sail south onto the harbor water to explore the wreck site.'], null);
+                        }
                     }
                 });
             }
@@ -789,6 +860,28 @@ function drawOverworld() {
             ctx.fillRect(npc.x*TILE+14, npc.y*TILE-16, 4, 4);
         }
     });
+
+    // Boat hull — rendered before player so player sits on top
+    const curTile = map.tiles[Math.round(playerData.y)]?.[Math.round(playerData.x)] ?? 0;
+    const onWater = playerData.hasBoat && playerData.currentMap === 'harbor' && (curTile === 0 || curTile === 1);
+    if (onWater) {
+        const bx = interpX*TILE - 10, by = interpY*TILE + 8;
+        // Hull
+        ctx.fillStyle = '#6b4020';
+        ctx.fillRect(bx, by + 6, 52, 16);
+        ctx.fillStyle = '#8b5a30';
+        ctx.fillRect(bx + 2, by + 2, 48, 8);
+        ctx.fillStyle = PAL.rope;
+        ctx.fillRect(bx, by + 8, 52, 3); // gunwale stripe
+        // Oars
+        ctx.fillStyle = '#4a2a10';
+        ctx.fillRect(bx - 10, by + 10, 14, 3);
+        ctx.fillRect(bx + 48, by + 10, 14, 3);
+        // Water ripple around boat
+        const rp = Math.sin(frameCount * 0.08) * 2;
+        ctx.fillStyle = 'rgba(100,180,255,0.2)';
+        ctx.fillRect(bx - 14, by + 16, 80, 4 + rp);
+    }
 
     // Player
     const playerColors = { body: '#2050a0', skin: '#f0c8a0', hair: '#c0a060', legs: '#102840', shoes: '#181818', satchel: playerData.hasLogbook };
@@ -1080,7 +1173,7 @@ function drawVictory() {
 
     if (battleState.resultTimer > 60) {
         ctx.fillStyle = '#70d070'; ctx.font = '10px "Press Start 2P"';
-        const hints = { quiz1: 'The Harbor awaits!', quiz2: 'The Museum awaits!' };
+        const hints = { quiz1: 'Walk south to the harbor warp!', quiz2: '333 years pass... The Vasa is raised!' };
         ctx.fillText(hints[battleState.quizKey]||'', 400, 480);
     }
     if (battleState.resultTimer > 60 && Math.floor(frameCount/20)%2===0) {
@@ -1090,7 +1183,19 @@ function drawVictory() {
     if (!battleState.resultTimer) battleState.resultTimer = 0;
     battleState.resultTimer++;
     if (battleState.resultTimer > 60 && (keyJustPressed(' ') || keyJustPressed('Enter'))) {
-        battleState = null; gameState = 'overworld'; playerData.hp = playerData.maxHp;
+        const qk = battleState.quizKey;
+        battleState = null; playerData.hp = playerData.maxHp;
+        if (qk === 'quiz2') {
+            // Time-jump to the museum — player travels 333 years forward
+            startDialogue([
+                'The Admiral signs your logbook. Testimony secured.',
+                '333 years pass...',
+                'The Vasa is raised from the harbor in 1961. A museum is built around her.',
+                'Your spirit travels forward through time — to the Vasa Museum, 1990.'
+            ], () => startMapTransition('museum', 4, 9));
+        } else {
+            gameState = 'overworld';
+        }
     }
     ctx.textAlign = 'left';
     drawParticles();
@@ -1466,7 +1571,7 @@ function keyJustPressed(key) {
 
 // ── Reset ──────────────────────────────────────────────────────────────────────
 function resetGame() {
-    playerData = { x:5,y:8,dir:'down',moving:false,moveProgress:0,targetX:5,targetY:8, xp:0,level:1,hp:100,maxHp:100,wisdom:10, questionsAnswered:0,correctAnswers:0, defeatedBosses:[],inventory:[],currentMap:'shipyard',name:'Young Erik',hasLogbook:false,visitedArtifacts:[],talkedToNpcs:[] };
+    playerData = { x:5,y:8,dir:'down',moving:false,moveProgress:0,targetX:5,targetY:8, xp:0,level:1,hp:100,maxHp:100,wisdom:10, questionsAnswered:0,correctAnswers:0, defeatedBosses:[],inventory:[],currentMap:'shipyard',name:'Young Erik',hasLogbook:false,hasBoat:false,visitedArtifacts:[],talkedToNpcs:[] };
     battleState=null; diplomaTimer=0; diplomaPhase=0;
     titleSelection=0; prologueStep=0; prologueTimer=0; prologueTextTimer=0;
     particles=[];
