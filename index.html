@@ -61,6 +61,7 @@
             caret-color: #f0e060;
         }
         #name-input:focus { border-color: #80a0e0; }
+        #name-input::placeholder { color: #2a3a5a; opacity: 1; }
         #name-begin {
             font-family: 'Press Start 2P', monospace;
             font-size: 11px;
@@ -146,7 +147,7 @@
         <canvas id="gameCanvas" width="800" height="600"></canvas>
         <div id="name-overlay">
             <label>ENTER YOUR NAME<br><span style="font-size:8px;color:#6080a0">apprentice of Master Henrik</span></label>
-            <input id="name-input" type="text" maxlength="12" placeholder="Erik" autocomplete="off" spellcheck="false" />
+            <input id="name-input" type="text" maxlength="12" placeholder="name" autocomplete="off" spellcheck="false" />
             <button id="name-begin">BEGIN</button>
         </div>
     </div>
