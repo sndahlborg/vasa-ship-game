@@ -73,6 +73,7 @@ function buildPrologueScenes() {
 const quizSets = {
     quiz1: {
         name: 'Master Shipwright\'s Challenge',
+        difficulty: { hpLossPerWrong: 35, passThreshold: 4 },
         questions: [
             { q: 'Who ordered the Vasa to be built?', options: ['King Gustav II Adolf','Queen Christina','King Karl X','King Erik XIV'], correct: 0, fact: 'Gustav II Adolf (1594–1632) was Sweden\'s warrior king. He wanted the Vasa to project Swedish naval power across the Baltic.' },
             { q: 'How many gun decks did the Vasa have?', options: ['One','Two','Three','Four'], correct: 1, fact: 'The second gun deck was added at the king\'s insistence, raising the center of gravity dangerously above the keel. This was the root cause of the sinking.' },
@@ -86,6 +87,7 @@ const quizSets = {
     },
     quiz2: {
         name: 'The Admiral\'s Test',
+        difficulty: { hpLossPerWrong: 35, passThreshold: 4 },
         questions: [
             { q: 'On what date did the Vasa sink?', options: ['July 4, 1628','August 10, 1628','September 15, 1628','October 1, 1628'], correct: 1, fact: 'August 10, 1628 — a Sunday. Crowds had gathered to watch, making the disaster shamefully public for the Swedish Crown.' },
             { q: 'Why did the Vasa sink?', options: ['Struck by lightning','Enemy attack','It was too top-heavy','Rotten wood'], correct: 2, fact: 'A stability test weeks earlier — 30 men running back and forth across the deck — showed catastrophic instability. The results were suppressed.' },
@@ -99,6 +101,7 @@ const quizSets = {
     },
     quiz3: {
         name: 'The King\'s Final Examination',
+        difficulty: { hpLossPerWrong: 20, passThreshold: 3 },
         questions: [
             { q: 'Who discovered the Vasa wreck in 1956?', options: ['Jacques Cousteau','Alfred Nobel','Anders Franzen','Carl Linnaeus'], correct: 2, fact: 'Anders Franzen (1918–1993) spent years convinced the Vasa lay preserved in Stockholm harbor. A core sample of black oak from the seabed confirmed he was right.' },
             { q: 'In what year was the Vasa successfully raised?', options: ['1956','1961','1975','1988'], correct: 1, fact: 'On April 24, 1961, after 18 months of tunneling cables beneath the hull, the Vasa rose from 333 years of darkness — largely intact.' },
@@ -283,7 +286,7 @@ const maps = {
             { id: 'art_cannon_mold', name: '★ Bronze Cannon Mold', x: 22, y: 13, dir: 'down', isArtifact: true, xpReward: 25,
               dialogue: ['★  BRONZE CANNON MOLD', '64 bronze cannons were cast for the Vasa — each weighing over 1,200 kg.', 'The cannons alone were worth more than the ship itself.', 'Ironically, their weight on two decks was what doomed her.', '+25 Scholar XP earned!']
             },
-            { id: 'boss_shipyard', name: 'Master Shipwright', x: 12, y: 8, dir: 'down', isBoss: true, quizKey: 'quiz1', isSpirit: false,
+            { id: 'boss_shipyard', name: 'Master Shipwright', x: 12, y: 8, dir: 'down', isBoss: true, quizKey: 'quiz1', isSpirit: false, requiresTalked: ['bjorn', 'lars', 'ingrid', 'apprentice'],
               colors: { body: '#1a3a6a', skin: PAL.npcSkin, hair: '#d0c080', legs: '#102050', shoes: '#0a1030', satchel: false },
               dialogue: [
                   'So you wish to document the Vasa, young Erik?',
@@ -347,7 +350,7 @@ const maps = {
             { id: 'art_harbor_log', name: '★ Harbor Master\'s Log', x: 22, y: 8, dir: 'down', isArtifact: true, xpReward: 30,
               dialogue: ['★  HARBOR MASTER\'S LOG', '"August 10, 1628 — The Vasa departed at approximately 3pm. Wind: light southerly."', '"She fired a salute. Heeled to port. Did not recover. Sank at 4pm."', '"Approximately 50 souls lost. The king has been notified."', '+30 Scholar XP earned!']
             },
-            { id: 'boss_harbor', name: 'Admiral Karl Gyllenhielm', x: 12, y: 8, dir: 'down', isBoss: true, quizKey: 'quiz2', isSpirit: false,
+            { id: 'boss_harbor', name: 'Admiral Karl Gyllenhielm', x: 12, y: 8, dir: 'down', isBoss: true, quizKey: 'quiz2', isSpirit: false, requiresTalked: ['per', 'maria', 'sailor_lars', 'dock_master'],
               colors: { body: '#0a2050', skin: PAL.npcSkin, hair: '#c8c0a0', legs: '#061030', shoes: '#040818', satchel: false },
               dialogue: [
                   'You are building a case for the captain, boy? I respect that.',
@@ -421,7 +424,7 @@ const maps = {
             { id: 'art_shoe', name: '★ A Sailor\'s Boot', x: 14, y: 3, dir: 'down', isArtifact: true, xpReward: 25,
               dialogue: ['★  A SAILOR\'S BOOT', 'This boot was found on the seabed next to the wreck.', 'Over 700 personal items of clothing were recovered — many still holding the shape of the person who wore them.', 'They were frozen in time on August 10, 1628.', '+25 Scholar XP earned!']
             },
-            { id: 'ghost_king', name: 'Ghost of King Gustav II Adolf', x: 12, y: 8, dir: 'down', isBoss: true, quizKey: 'quiz3', isSpirit: true,
+            { id: 'ghost_king', name: 'Ghost of King Gustav II Adolf', x: 12, y: 8, dir: 'down', isBoss: true, quizKey: 'quiz3', isSpirit: true, requiresTalked: ['guide_sofia', 'archaeologist', 'young_visitor'],
               colors: { body: '#304870', skin: '#c8d8e8', hair: '#d8d0a8', legs: '#1a2840', shoes: '#101828', satchel: false },
               dialogue: [
                   '...',
@@ -872,7 +875,8 @@ function updateOverworld() {
                 // Check NPC collision
                 const npc = map.npcs.find(n => n.x === nx && n.y === ny);
                 if (!npc) {
-                    playerData.targetX = nx; playerData.targetY = ny;
+                    playerData.targetX = Math.max(0, Math.min(map.width - 1, nx));
+                    playerData.targetY = Math.max(0, Math.min(map.height - 1, ny));
                     playerData.moving = true;
                 }
             }
@@ -903,7 +907,28 @@ function updateOverworld() {
                     startDialogue(['You have already examined this artifact.'], null);
                 }
             } else if (npc.isBoss && !playerData.defeatedBosses.includes(npc.quizKey)) {
-                startDialogue(npc.dialogue, () => startBattle(npc));
+                // Check if all required NPCs have been talked to
+                const required = npc.requiresTalked || [];
+                const missing = required.filter(id => !playerData.talkedToNpcs.includes(id));
+                if (missing.length > 0) {
+                    // Build a thematic hint based on which boss this is
+                    let hint;
+                    const map = maps[playerData.currentMap];
+                    const missingNames = missing.map(id => {
+                        const n = map.npcs.find(nn => nn.id === id);
+                        return n ? n.name : id;
+                    });
+                    if (npc.quizKey === 'quiz1') {
+                        hint = `Before we settle this with knowledge, seek out the workers who built her. Have you spoken with ${missingNames.join(' and ')}? ${missing.length === 1 ? 'One worker still has words for you.' : missing.length + ' workers still have words for you.'} Hear them out first.`;
+                    } else if (npc.quizKey === 'quiz2') {
+                        hint = `You are not ready yet, young scholar. ${missing.length === 1 ? 'There is still a witness you have not spoken to' : 'There are still ' + missing.length + ' witnesses you have not spoken to'}: ${missingNames.join(' and ')}. A thorough inquiry leaves no witness unheard.`;
+                    } else {
+                        hint = `...You have not yet learned everything this museum holds. ${missing.length === 1 ? 'One voice still waits to speak to you' : missing.length + ' voices still wait to speak to you'}: ${missingNames.join(' and ')}. Return when you have listened to them all.`;
+                    }
+                    startDialogue([hint], null);
+                } else {
+                    startDialogue(npc.dialogue, () => startBattle(npc));
+                }
             } else if (npc.isBoss) {
                 startDialogue(['You have already proven your knowledge here. Well done, scholar!'], null);
             } else {
@@ -1090,6 +1115,7 @@ function wrapText(text, x, y, maxWidth, lineHeight) {
 // ── Battle ────────────────────────────────────────────────────────────────────
 function startBattle(npc) {
     const quiz = quizSets[npc.quizKey];
+    const diff = quiz.difficulty || { hpLossPerWrong: 35, passThreshold: 4 };
     battleState = {
         enemy: npc.name, quizKey: npc.quizKey,
         questions: shuffleArray([...quiz.questions]).slice(0, 5), // pick 5 random from 8
@@ -1100,6 +1126,9 @@ function startBattle(npc) {
         enemyColors: { ...npc.colors, isSpirit: npc.isSpirit },
         intro: npc.battleIntro || `${npc.name} challenges you!`,
         combo: 0, comboMax: 0, introTimer: 0,
+        hpLossPerWrong: diff.hpLossPerWrong,
+        passThreshold: diff.passThreshold,
+        wrongCount: 0,
     };
     gameState = 'battleIntro';
 }
@@ -1112,8 +1141,19 @@ function updateBattle() {
     }
 
     if (battleState.phase === 'question') {
-        if (keyJustPressed('ArrowUp')) battleState.selected = Math.max(0, battleState.selected-1);
-        if (keyJustPressed('ArrowDown')) battleState.selected = Math.min(3, battleState.selected+1);
+        // 2x2 grid: 0=top-left, 1=top-right, 2=bottom-left, 3=bottom-right
+        if (keyJustPressed('ArrowUp')) {
+            if (battleState.selected >= 2) battleState.selected -= 2; // bottom row → top row
+        }
+        if (keyJustPressed('ArrowDown')) {
+            if (battleState.selected <= 1) battleState.selected += 2; // top row → bottom row
+        }
+        if (keyJustPressed('ArrowLeft')) {
+            if (battleState.selected % 2 === 1) battleState.selected -= 1; // right col → left col
+        }
+        if (keyJustPressed('ArrowRight')) {
+            if (battleState.selected % 2 === 0) battleState.selected += 1; // left col → right col
+        }
         if ((keyJustPressed(' ') || keyJustPressed('Enter') || keyJustPressed('z')) && !battleState.answered) {
             battleState.answered = true;
             const q = battleState.questions[battleState.currentQ];
@@ -1130,7 +1170,8 @@ function updateBattle() {
                 if (battleState.combo >= 2) playerData.xp += 5; // streak bonus
             } else {
                 battleState.combo = 0;
-                battleState.playerHP = Math.max(0, battleState.playerHP - 15);
+                battleState.wrongCount = (battleState.wrongCount || 0) + 1;
+                battleState.playerHP = Math.max(0, battleState.playerHP - battleState.hpLossPerWrong);
                 screenShake = 4;
                 spawnParticles(200, 300, '#d04040', 6);
             }
@@ -1138,22 +1179,37 @@ function updateBattle() {
         }
     } else if (battleState.phase === 'result') {
         battleState.resultTimer++;
+        // Determine win/fail state to show on result screen
+        const maxWrong = battleState.questions.length - battleState.passThreshold; // e.g. 5-4=1 wrong allowed for quiz1
+        const failedByWrong = battleState.wrongCount > maxWrong;
+        const questionsRemaining = battleState.questions.length - (battleState.currentQ + 1);
+        const correctSoFar = (battleState.currentQ + 1) - battleState.wrongCount;
+        const canStillPass = (correctSoFar + questionsRemaining) >= battleState.passThreshold && !failedByWrong;
+        const alreadyWon = correctSoFar >= battleState.passThreshold;
+
         if (battleState.resultTimer > 50 && (keyJustPressed(' ') || keyJustPressed('Enter'))) {
-            if (battleState.enemyHP <= 0) {
-                // Victory
+            if (alreadyWon) {
+                // Victory — enough correct answers reached the pass threshold
                 playerData.defeatedBosses.push(battleState.quizKey);
                 playerData.xp += 100;
                 if (playerData.xp >= playerData.level*50) { playerData.level++; playerData.maxHp+=10; playerData.hp=playerData.maxHp; }
                 playerData.hp = playerData.maxHp;
-                screenShake = 0; // clear any residual shake before returning to overworld
-                gameState = 'victory'; // always — diploma triggered by Head Archivist after quiz3
-            } else if (battleState.playerHP <= 0) {
+                screenShake = 0;
+                gameState = 'victory';
+            } else if (failedByWrong || battleState.playerHP <= 0) {
+                // Failed — too many wrong answers
                 playerData.hp = Math.floor(playerData.maxHp * 0.5);
                 battleState.playerHP = playerData.hp; battleState.enemyHP = battleState.maxEnemyHP;
-                battleState.answered = false; battleState.currentQ = 0; battleState.phase = 'question'; battleState.selected = 0;
+                battleState.answered = false; battleState.currentQ = 0; battleState.phase = 'question';
+                battleState.selected = 0; battleState.wrongCount = 0; battleState.combo = 0;
+            } else if (battleState.currentQ + 1 >= battleState.questions.length) {
+                // Ran out of questions without winning — restart
+                playerData.hp = Math.floor(playerData.maxHp * 0.5);
+                battleState.playerHP = playerData.hp; battleState.enemyHP = battleState.maxEnemyHP;
+                battleState.answered = false; battleState.currentQ = 0; battleState.phase = 'question';
+                battleState.selected = 0; battleState.wrongCount = 0; battleState.combo = 0;
             } else {
                 battleState.currentQ++;
-                if (battleState.currentQ >= battleState.questions.length) battleState.currentQ = 0;
                 battleState.answered = false; battleState.phase = 'question'; battleState.selected = 0;
             }
         }
