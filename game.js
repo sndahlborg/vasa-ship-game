@@ -20,9 +20,9 @@ let playerData = {
     x: 5, y: 8, dir: 'down', moving: false, moveProgress: 0, targetX: 5, targetY: 8,
     xp: 0, level: 1, hp: 100, maxHp: 100, wisdom: 10,
     questionsAnswered: 0, correctAnswers: 0,
-    defeatedBosses: [], inventory: [],
+    defeatedBosses: [],
     currentMap: 'shipyard', name: 'Young Erik',
-    hasLogbook: false, hasBoat: false, visitedArtifacts: [], talkedToNpcs: []
+    hasLogbook: false, hasBoat: false, talkedToNpcs: []
 };
 
 let currentDialogue = null, dialogueIndex = 0, dialogueCharIndex = 0, dialogueTimer = 0;
@@ -296,7 +296,7 @@ const maps = {
         name: 'Stockholm Harbor — August 10, 1628',
         tiles: generateHarborMap(),
         width: COLS, height: ROWS,
-        warps: [{ x: 4, y: 8, target: 'shipyard', toX: 4, toY: 16 }],
+        warps: [{ x: 1, y: 8, target: 'shipyard', toX: 4, toY: 16 }],
         npcs: [
             { id: 'per', name: 'Per the Harbor Worker', x: 8, y: 6, dir: 'down', isSpirit: false,
               colors: { body: '#3a5a8a', skin: PAL.npcSkin, hair: '#8a6040', legs: '#1a3060', shoes: '#101828', satchel: false },
@@ -1863,7 +1863,7 @@ function keyJustPressed(key) {
 
 // ── Reset ──────────────────────────────────────────────────────────────────────
 function resetGame() {
-    playerData = { x:5,y:8,dir:'down',moving:false,moveProgress:0,targetX:5,targetY:8, xp:0,level:1,hp:100,maxHp:100,wisdom:10, questionsAnswered:0,correctAnswers:0, defeatedBosses:[],inventory:[],currentMap:'shipyard',name:'Young Erik',hasLogbook:false,hasBoat:false,visitedArtifacts:[],talkedToNpcs:[] };
+    playerData = { x:5,y:8,dir:'down',moving:false,moveProgress:0,targetX:5,targetY:8, xp:0,level:1,hp:100,maxHp:100,wisdom:10, questionsAnswered:0,correctAnswers:0, defeatedBosses:[],currentMap:'shipyard',name:'Young Erik',hasLogbook:false,hasBoat:false,talkedToNpcs:[] };
     battleState=null; diplomaTimer=0; diplomaPhase=0;
     titleSelection=0; prologueStep=0; prologueTimer=0; prologueTextTimer=0;
     codexOpen=false; codexPage=0;
