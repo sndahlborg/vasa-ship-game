@@ -380,8 +380,8 @@ const maps = {
         name: 'Vasa Museum — Stockholm, 1990',
         tiles: generateMuseumMap(),
         width: COLS, height: ROWS,
-        warps: [{ x: 4, y: 8, target: 'harbor', toX: 4, toY: 9 },
-                { x: 4, y: 17, target: 'archive', toX: 12, toY: 8, requires: 'quiz3' }],
+        warps: [{ x: 1, y: 8, target: 'harbor', toX: 4, toY: 9 },
+                { x: 4, y: 17, target: 'archive', toX: 12, toY: 9, requires: 'quiz3' }],
         npcs: [
             { id: 'guide_sofia', name: 'Tour Guide Sofia', x: 8, y: 6, dir: 'down', isSpirit: false,
               colors: { body: '#d0c0a0', skin: PAL.npcSkin, hair: '#804020', legs: '#a0907a', shoes: '#605040', satchel: true },
@@ -777,7 +777,7 @@ function drawHUD(mapName) {
     ctx.fillStyle = 'rgba(0,0,0,0.72)';
     ctx.fillRect(0, 0, 800, 36);
     ctx.fillStyle = PAL.swYellow;
-    ctx.font = '10px "Press Start 2P"';
+    ctx.font = '8px "Press Start 2P"';
     ctx.textAlign = 'left';
     ctx.fillText(mapName, 10, 24);
 
@@ -785,8 +785,9 @@ function drawHUD(mapName) {
     const allArtifacts = Object.values(maps).flatMap(m => m.npcs).filter(n => n.isArtifact);
     const foundArt = allArtifacts.filter(n => playerData.talkedToNpcs.includes(n.id)).length;
     ctx.fillStyle = foundArt === allArtifacts.length ? PAL.gold : '#a09040';
+    ctx.font = '8px "Press Start 2P"';
     ctx.textAlign = 'left';
-    ctx.fillText(`★ ${foundArt}/${allArtifacts.length}`, 200, 24);
+    ctx.fillText(`★ ${foundArt}/${allArtifacts.length}`, 310, 24);
 
     ctx.fillStyle = '#a0b0d0';
     ctx.textAlign = 'right';
@@ -812,11 +813,11 @@ function drawHUD(mapName) {
     ctx.fillText('TESTIMONIES', 590, bY+14);
     const b = playerData.defeatedBosses;
     ctx.fillStyle = b.includes('quiz1') ? PAL.hpGreen : '#506080';
-    ctx.fillText(b.includes('quiz1') ? '✓ Shipyard' : '○ Shipyard', 590, bY+28);
+    ctx.fillText(b.includes('quiz1') ? '[+] Shipyard' : '[ ] Shipyard', 590, bY+28);
     ctx.fillStyle = b.includes('quiz2') ? PAL.hpGreen : '#506080';
-    ctx.fillText(b.includes('quiz2') ? '✓ Harbor' : '○ Harbor', 590, bY+42);
+    ctx.fillText(b.includes('quiz2') ? '[+] Harbor' : '[ ] Harbor', 590, bY+42);
     ctx.fillStyle = b.includes('quiz3') ? PAL.hpGreen : '#506080';
-    ctx.fillText(b.includes('quiz3') ? '✓ Museum' : '○ Museum', 590, bY+56);
+    ctx.fillText(b.includes('quiz3') ? '[+] Museum' : '[ ] Museum', 590, bY+56);
 }
 
 // ── Overworld Update ──────────────────────────────────────────────────────────
@@ -904,10 +905,12 @@ function updateOverworld() {
                 startDialogue(['You have already proven your knowledge here. Well done, scholar!'], null);
             } else {
                 const alreadyTalked = playerData.talkedToNpcs.includes(npc.id);
-                // Archivist: show different dialogue based on progress
-                let dlgLines = alreadyTalked ? [npc.dialogue[0]] : npc.dialogue;
-                if (npc.triggersEnding && playerData.defeatedBosses.length < 3) {
-                    dlgLines = npc.earlyDialogue || npc.dialogue;
+                // Archivist / triggersEnding NPCs: show full dialogue any time player has all bosses
+                let dlgLines;
+                if (npc.triggersEnding) {
+                    dlgLines = playerData.defeatedBosses.length >= 3 ? npc.dialogue : (npc.earlyDialogue || npc.dialogue);
+                } else {
+                    dlgLines = alreadyTalked ? [npc.dialogue[0]] : npc.dialogue;
                 }
                 startDialogue(dlgLines, () => {
                     if (!alreadyTalked) {
@@ -917,9 +920,10 @@ function updateOverworld() {
                             playerData.hasBoat = true;
                             startDialogue(['You received the ROWBOAT! Sail south onto the harbor water to explore the wreck site.'], null);
                         }
-                        if (npc.triggersEnding && playerData.defeatedBosses.length >= 3) {
-                            gameState = 'diploma'; diplomaTimer = 0; diplomaPhase = 0;
-                        }
+                    }
+                    // Always check ending trigger regardless of visit history
+                    if (npc.triggersEnding && playerData.defeatedBosses.length >= 3) {
+                        gameState = 'diploma'; diplomaTimer = 0; diplomaPhase = 0;
                     }
                 });
             }
@@ -1394,7 +1398,7 @@ function drawVictory() {
                 '"The Shipwright. The Admiral. Now me — the man who ordered it all."',
                 '"Go to the Archive. Present your case. The captain awaits his verdict."',
                 'Travel through the Museum to the Archive entrance at the south wall.'
-            ], () => startMapTransition('archive', 12, 8));
+            ], () => startMapTransition('archive', 12, 9));
         } else {
             gameState = 'overworld';
         }
