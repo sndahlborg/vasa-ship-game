@@ -101,7 +101,7 @@ const quizSets = {
     },
     quiz3: {
         name: 'The King\'s Final Examination',
-        difficulty: { hpLossPerWrong: 20, passThreshold: 3 },
+        difficulty: { hpLossPerWrong: 25, passThreshold: 5 },
         questions: [
             { q: 'Who discovered the Vasa wreck in 1956?', options: ['Jacques Cousteau','Alfred Nobel','Anders Franzen','Carl Linnaeus'], correct: 2, fact: 'Anders Franzen (1918–1993) spent years convinced the Vasa lay preserved in Stockholm harbor. A core sample of black oak from the seabed confirmed he was right.' },
             { q: 'In what year was the Vasa successfully raised?', options: ['1956','1961','1975','1988'], correct: 1, fact: 'On April 24, 1961, after 18 months of tunneling cables beneath the hull, the Vasa rose from 333 years of darkness — largely intact.' },
