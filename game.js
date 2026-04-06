@@ -32,7 +32,7 @@ let titleSelection = 0, titleBlink = 0;
 let mapTransitionAlpha = 0, mapTransitionDir = 0, mapTransitionTarget = null;
 let screenShake = 0;
 let particles = [];
-let prologueStep = 0, prologueTimer = 0, prologueTextIndex = 0, prologueTextTimer = 0;
+let prologueStep = 0, prologueTimer = 0, prologueTextTimer = 0;
 let diplomaTimer = 0, diplomaPhase = 0;
 let slideshowIndex = 0, slideshowTimer = 0, slideshowAlpha = 0;
 let codexOpen = false, codexPage = 0;
@@ -1139,6 +1139,7 @@ function updateBattle() {
                 playerData.xp += 100;
                 if (playerData.xp >= playerData.level*50) { playerData.level++; playerData.maxHp+=10; playerData.hp=playerData.maxHp; }
                 playerData.hp = playerData.maxHp;
+                screenShake = 0; // clear any residual shake before returning to overworld
                 gameState = 'victory'; // always — diploma triggered by Head Archivist after quiz3
             } else if (battleState.playerHP <= 0) {
                 playerData.hp = Math.floor(playerData.maxHp * 0.5);
@@ -1266,7 +1267,7 @@ function drawBattle() {
     if (battleState.combo >= 2) {
         const sc = battleState.combo >= 3 ? PAL.gold : '#f08020';
         ctx.fillStyle = sc; ctx.font='9px "Press Start 2P"'; ctx.textAlign='left';
-        ctx.fillText(`${battleState.combo}✗ STREAK!`, 50, 160);
+        ctx.fillText(`${battleState.combo}x STREAK!`, 50, 160);
         if (battleState.combo >= 3) {
             ctx.fillStyle='rgba(212,168,0,0.15)'; ctx.fillRect(0,0,800,600);
         }
@@ -1466,7 +1467,7 @@ function drawDiploma() {
         ctx.fillText('"History will remember what you did here."', 400, 298);
     }
 
-    if (diplomaPhase >= 1) {
+    if (diplomaPhase >= 1 && diplomaPhase < 4) {
         const u=Math.min(1,(diplomaTimer-60)/60);
         const dW=520, dH=420*u, dx=400-dW/2, dy=60;
         ctx.fillStyle='rgba(0,0,0,0.35)'; ctx.fillRect(dx+6,dy+6,dW,dH);
@@ -1485,7 +1486,7 @@ function drawDiploma() {
         ctx.fillRect(dx+dW/2-3,dy+25,6,28); ctx.fillRect(dx+dW/2-12,dy+35,24,6);
     }
 
-    if (diplomaPhase >= 2) {
+    if (diplomaPhase >= 2 && diplomaPhase < 4) {
         const ta=Math.min(1,(diplomaTimer-120)/60), cx=400, dy2=60;
         ctx.globalAlpha=ta;
         ctx.fillStyle='#1a1208'; ctx.font='14px "Press Start 2P"'; ctx.textAlign='center';
@@ -1710,7 +1711,7 @@ function drawCodex() {
 
         // Navigation
         ctx.fillStyle='#506080'; ctx.font='7px "Press Start 2P"'; ctx.textAlign='center';
-        ctx.fillText(`Witness ${pi+1} of ${talked.length}  —  ◄► to browse`, 400, 530);
+        ctx.fillText(`Witness ${pi+1} of ${talked.length}  --  [<] [>] to browse`, 400, 530);
     }
 
     // Artifact section
@@ -1731,7 +1732,7 @@ function updateTitle() {
     if (keyJustPressed('ArrowUp')) titleSelection = Math.max(0, titleSelection-1);
     if (keyJustPressed('ArrowDown')) titleSelection = Math.min(1, titleSelection+1);
     if (keyJustPressed(' ') || keyJustPressed('Enter') || keyJustPressed('z')) {
-        if (titleSelection===0) { gameState='prologue'; prologueStep=0; prologueTimer=0; prologueTextIndex=0; prologueTextTimer=0; }
+        if (titleSelection===0) { gameState='prologue'; prologueStep=0; prologueTimer=0; prologueTextTimer=0; }
     }
 }
 
@@ -1793,7 +1794,7 @@ function drawTitle() {
         ctx.fillStyle=selected?PAL.swYellow:'#8090b0';
         ctx.font='10px "Press Start 2P"'; ctx.textAlign='center';
         ctx.fillText(o,400,368+i*60);
-        if(selected&&Math.floor(titleBlink/15)%2===0){ctx.fillStyle=PAL.swYellow;ctx.fillText('▶',248,368+i*60);}
+        if(selected&&Math.floor(titleBlink/15)%2===0){ctx.fillStyle=PAL.swYellow;ctx.fillText('>',248,368+i*60);}
     });
 
     if (titleSelection===1) {
