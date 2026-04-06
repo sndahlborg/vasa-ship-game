@@ -12,7 +12,7 @@ const TILE = 32;
 const COLS = 25;
 const ROWS = 18;
 
-let gameState = 'title'; // title, prologue, overworld, dialogue, battle, battleIntro, victory, diploma, mapTransition, slideshow
+let gameState = 'title'; // title, nameEntry, prologue, overworld, dialogue, battle, battleIntro, victory, diploma, mapTransition, slideshow
 let keys = {};
 let frameCount = 0;
 
@@ -21,7 +21,7 @@ let playerData = {
     xp: 0, level: 1, hp: 100, maxHp: 100, wisdom: 10,
     questionsAnswered: 0, correctAnswers: 0,
     defeatedBosses: [],
-    currentMap: 'shipyard', name: 'Young Erik',
+    currentMap: 'shipyard', name: 'Erik',
     hasLogbook: false, hasBoat: false, talkedToNpcs: []
 };
 
@@ -57,12 +57,16 @@ const PAL = {
 };
 
 // ── Prologue ──────────────────────────────────────────────────────────────────
-const prologueScenes = [
-    { title: 'Stockholm — August 10, 1628', text: 'The most magnificent warship ever built has sunk. On her very first voyage. In front of the whole city. In under an hour.', bg: 'navy' },
-    { title: 'The Arrest', text: 'Captain Söfring Hansson has been seized and thrown in prison. The king demands someone answer for this disaster. An execution may follow.', bg: 'wood' },
-    { title: 'The Hidden Warning', text: 'You are Erik — apprentice of the late Master Henrik, the Vasa\'s original architect. He warned the king: two gun decks would make her dangerously top-heavy. The king refused to listen.', bg: 'gold' },
-    { title: 'Your Mission', text: 'Master Henrik\'s notes survive. The witnesses are here. Gather three testimonies. Prove the Vasa was built wrong — not sailed wrong. Save an innocent man. Document the truth.', bg: 'blue' },
-];
+let prologueScenes = [];
+function buildPrologueScenes() {
+    const n = playerData.name;
+    prologueScenes = [
+        { title: 'Stockholm — August 10, 1628', text: 'The most magnificent warship ever built has sunk. On her very first voyage. In front of the whole city. In under an hour.', bg: 'navy' },
+        { title: 'The Arrest', text: 'Captain Söfring Hansson has been seized and thrown in prison. The king demands someone answer for this disaster. An execution may follow.', bg: 'wood' },
+        { title: 'The Hidden Warning', text: 'You are ' + n + ' — apprentice of the late Master Henrik, the Vasa\'s original architect. He warned the king: two gun decks would make her dangerously top-heavy. The king refused to listen.', bg: 'gold' },
+        { title: 'Your Mission', text: 'Master Henrik\'s notes survive. The witnesses are here. Gather three testimonies. Prove the Vasa was built wrong — not sailed wrong. Save an innocent man. Document the truth.', bg: 'blue' },
+    ];
+}
 
 // ── Quiz Sets ─────────────────────────────────────────────────────────────────
 // 8 questions per set; startBattle picks 5 at random each time
@@ -1012,7 +1016,8 @@ function drawOverworld() {
 
 // ── Dialogue ──────────────────────────────────────────────────────────────────
 function startDialogue(lines, callback) {
-    currentDialogue = lines;
+    // Substitute player name placeholder wherever NPC dialogue references "Erik"
+    currentDialogue = lines.map(l => l.replace(/\bYoung Erik\b/g, 'Young ' + playerData.name).replace(/\bErik\b/g, playerData.name));
     dialogueIndex = 0; dialogueCharIndex = 0; dialogueTimer = 0;
     dialogueComplete = false; dialogueCallback = callback;
     gameState = 'dialogue';
@@ -1255,7 +1260,7 @@ function drawBattle() {
 
     // Player side
     ctx.fillStyle='#909090'; ctx.font='8px "Press Start 2P"'; ctx.textAlign='left';
-    ctx.fillText('Young Erik', 50, 90);
+    ctx.fillText('Young ' + playerData.name, 50, 90);
     ctx.fillStyle='#202030'; ctx.fillRect(50, 96, 210, 12);
     const phPct = battleState.playerHP/playerData.maxHp;
     ctx.fillStyle = phPct > 0.5 ? PAL.hpGreen : phPct > 0.25 ? PAL.hpYellow : PAL.hpRed;
@@ -1462,7 +1467,7 @@ function drawDiploma() {
         ctx.fillStyle=`rgba(252,209,22,${a})`; ctx.font='10px "Press Start 2P"';
         ctx.fillText('Captain Söfring Hansson: RELEASED', 400, 210);
         ctx.fillStyle=`rgba(200,216,240,${a})`; ctx.font='9px "Press Start 2P"';
-        ctx.fillText('"Young Erik... you have documented the truth."', 400, 250);
+        ctx.fillText('"Young ' + playerData.name + '... you have documented the truth."', 400, 250);
         ctx.fillText('"The Vasa was built wrong. Not sailed wrong."', 400, 274);
         ctx.fillText('"History will remember what you did here."', 400, 298);
     }
@@ -1726,13 +1731,59 @@ function drawCodex() {
     ctx.textAlign='left';
 }
 
+// ── Name Entry ─────────────────────────────────────────────────────────────────
+function showNameInput() {
+    const overlay = document.getElementById('name-overlay');
+    const input = document.getElementById('name-input');
+    if (!overlay || !input) return;
+    input.value = '';
+    overlay.classList.add('visible');
+    // Small delay so mobile keyboard doesn't obscure before layout settles
+    setTimeout(() => input.focus(), 80);
+}
+
+function hideNameInput() {
+    const overlay = document.getElementById('name-overlay');
+    if (overlay) overlay.classList.remove('visible');
+}
+
+function confirmName() {
+    const input = document.getElementById('name-input');
+    const raw = input ? input.value.trim() : '';
+    playerData.name = raw.length > 0 ? raw : 'Erik';
+    hideNameInput();
+    buildPrologueScenes();
+    prologueStep = 0; prologueTimer = 0; prologueTextTimer = 0;
+    gameState = 'prologue';
+}
+
+(function setupNameEntry() {
+    // Wait for DOM to be ready
+    function init() {
+        const input = document.getElementById('name-input');
+        const btn = document.getElementById('name-begin');
+        if (!input || !btn) { setTimeout(init, 50); return; }
+        input.addEventListener('keydown', e => {
+            if (e.key === 'Enter') { e.preventDefault(); confirmName(); }
+            // Block game key handling while typing
+            e.stopPropagation();
+        });
+        input.addEventListener('keyup', e => e.stopPropagation());
+        input.addEventListener('keypress', e => e.stopPropagation());
+        btn.addEventListener('click', () => confirmName());
+        btn.addEventListener('touchend', e => { e.preventDefault(); confirmName(); });
+    }
+    if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); }
+    else { init(); }
+})();
+
 // ── Title Screen ───────────────────────────────────────────────────────────────
 function updateTitle() {
     titleBlink++;
     if (keyJustPressed('ArrowUp')) titleSelection = Math.max(0, titleSelection-1);
     if (keyJustPressed('ArrowDown')) titleSelection = Math.min(1, titleSelection+1);
     if (keyJustPressed(' ') || keyJustPressed('Enter') || keyJustPressed('z')) {
-        if (titleSelection===0) { gameState='prologue'; prologueStep=0; prologueTimer=0; prologueTextTimer=0; }
+        if (titleSelection===0) { gameState='nameEntry'; showNameInput(); }
     }
 }
 
@@ -1863,7 +1914,8 @@ function keyJustPressed(key) {
 
 // ── Reset ──────────────────────────────────────────────────────────────────────
 function resetGame() {
-    playerData = { x:5,y:8,dir:'down',moving:false,moveProgress:0,targetX:5,targetY:8, xp:0,level:1,hp:100,maxHp:100,wisdom:10, questionsAnswered:0,correctAnswers:0, defeatedBosses:[],currentMap:'shipyard',name:'Young Erik',hasLogbook:false,hasBoat:false,talkedToNpcs:[] };
+    const savedName = playerData.name || 'Erik';
+    playerData = { x:5,y:8,dir:'down',moving:false,moveProgress:0,targetX:5,targetY:8, xp:0,level:1,hp:100,maxHp:100,wisdom:10, questionsAnswered:0,correctAnswers:0, defeatedBosses:[],currentMap:'shipyard',name:savedName,hasLogbook:false,hasBoat:false,talkedToNpcs:[] };
     battleState=null; diplomaTimer=0; diplomaPhase=0;
     titleSelection=0; prologueStep=0; prologueTimer=0; prologueTextTimer=0;
     codexOpen=false; codexPage=0;
@@ -1887,6 +1939,7 @@ function update() {
     updateParticles();
     switch(gameState) {
         case 'title': updateTitle(); break;
+        case 'nameEntry': break; // handled by HTML overlay
         case 'prologue': updatePrologue(); break;
         case 'overworld': updateOverworld(); break;
         case 'dialogue': updateDialogue(); break;
@@ -1903,6 +1956,7 @@ function draw() {
     ctx.clearRect(0,0,800,600);
     switch(gameState) {
         case 'title': drawTitle(); break;
+        case 'nameEntry': drawTitle(); break; // title screen stays visible behind overlay
         case 'prologue': drawPrologue(); break;
         case 'overworld': drawOverworld(); break;
         case 'dialogue': drawOverworld(); drawDialogue(); break;
