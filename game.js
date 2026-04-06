@@ -35,6 +35,7 @@ let particles = [];
 let prologueStep = 0, prologueTimer = 0, prologueTextIndex = 0, prologueTextTimer = 0;
 let diplomaTimer = 0, diplomaPhase = 0;
 let slideshowIndex = 0, slideshowTimer = 0, slideshowAlpha = 0;
+let codexOpen = false, codexPage = 0;
 
 // ── Color Palette ─────────────────────────────────────────────────────────────
 const PAL = {
@@ -64,39 +65,54 @@ const prologueScenes = [
 ];
 
 // ── Quiz Sets ─────────────────────────────────────────────────────────────────
+// 8 questions per set; startBattle picks 5 at random each time
 const quizSets = {
     quiz1: {
-        name: 'Master Henrik\'s Challenge',
+        name: 'Master Shipwright\'s Challenge',
         questions: [
-            { q: 'Who ordered the Vasa to be built?', options: ['King Gustav II Adolf','Queen Christina','King Karl X','King Erik XIV'], correct: 0 },
-            { q: 'How many gun decks did the Vasa have?', options: ['One','Two','Three','Four'], correct: 1 },
-            { q: 'In what year did construction of the Vasa begin?', options: ['1620','1624','1626','1630'], correct: 2 },
-            { q: 'Approximately how many bronze cannons did the Vasa carry?', options: ['24','48','64','100'], correct: 2 },
-            { q: 'What was the Vasa\'s primary purpose?', options: ['Trade ship','Fishing vessel','Passenger vessel','Warship'], correct: 3 },
+            { q: 'Who ordered the Vasa to be built?', options: ['King Gustav II Adolf','Queen Christina','King Karl X','King Erik XIV'], correct: 0, fact: 'Gustav II Adolf (1594–1632) was Sweden\'s warrior king. He wanted the Vasa to project Swedish naval power across the Baltic.' },
+            { q: 'How many gun decks did the Vasa have?', options: ['One','Two','Three','Four'], correct: 1, fact: 'The second gun deck was added at the king\'s insistence, raising the center of gravity dangerously above the keel. This was the root cause of the sinking.' },
+            { q: 'When did construction of the Vasa begin?', options: ['1620','1624','1626','1630'], correct: 2, fact: 'Work began in 1626 at the Skeppsgården shipyard in Stockholm, supervised by the Dutch shipwright Henrik Hybertszoon.' },
+            { q: 'Approximately how many bronze cannons did the Vasa carry?', options: ['24','48','64','100'], correct: 2, fact: '64 bronze cannons, each weighing over 1,200 kg. The cannons alone were worth more than the ship itself.' },
+            { q: 'What was the Vasa\'s primary purpose?', options: ['Trade ship','Fishing vessel','Passenger vessel','Warship'], correct: 3, fact: 'The Vasa was built to dominate the Baltic Sea and support Swedish military campaigns, especially against Poland.' },
+            { q: 'What type of wood was primarily used to build the Vasa?', options: ['Pine','Oak','Spruce','Elm'], correct: 1, fact: 'Over 1,000 oak trees — each 150+ years old — were felled to build the Vasa. Oak was prized for its strength and resistance to rot.' },
+            { q: 'Who was the original chief architect of the Vasa?', options: ['Hein Jacobsson','Lars Hansson','Henrik Hybertszoon','Gustav Eriksson'], correct: 2, fact: 'Henrik Hybertszoon, a Dutch shipwright, designed the Vasa. He died in 1627 before completion; his assistant Hein Jacobsson finished the work.' },
+            { q: 'How many carved sculptures decorated the Vasa?', options: ['About 100','About 300','About 700','About 1,200'], correct: 2, fact: 'About 700 carved sculptures — lions, Roman emperors, sea monsters, mermaids — were originally painted vivid red, black, and gold.' },
         ]
     },
     quiz2: {
         name: 'The Admiral\'s Test',
         questions: [
-            { q: 'On what date did the Vasa sink?', options: ['July 4, 1628','August 10, 1628','September 15, 1628','October 1, 1628'], correct: 1 },
-            { q: 'Why did the Vasa sink?', options: ['Struck by lightning','Enemy attack','It was too top-heavy','Rotten wood'], correct: 2 },
-            { q: 'How far did the Vasa travel before sinking?', options: ['About 100 meters','About 1,300 meters','About 5 kilometers','It never left dock'], correct: 1 },
-            { q: 'What happened to the lower gun ports when the Vasa heeled over?', options: ['They were sealed shut','Water flooded in through them','They were above water','Sailors closed them in time'], correct: 1 },
-            { q: 'How many people approximately died when the Vasa sank?', options: ['None','30 to 50','200 to 300','Over 500'], correct: 1 },
+            { q: 'On what date did the Vasa sink?', options: ['July 4, 1628','August 10, 1628','September 15, 1628','October 1, 1628'], correct: 1, fact: 'August 10, 1628 — a Sunday. Crowds had gathered to watch, making the disaster shamefully public for the Swedish Crown.' },
+            { q: 'Why did the Vasa sink?', options: ['Struck by lightning','Enemy attack','It was too top-heavy','Rotten wood'], correct: 2, fact: 'A stability test weeks earlier — 30 men running back and forth across the deck — showed catastrophic instability. The results were suppressed.' },
+            { q: 'How far did the Vasa travel before sinking?', options: ['About 100 meters','About 1,300 meters','About 5 kilometers','It never left dock'], correct: 1, fact: 'Just 1,300 meters. She fired a salute, caught a gust of wind, heeled over, and sank in under an hour — all within sight of the dock.' },
+            { q: 'What happened to the lower gun ports?', options: ['They were sealed shut','Water flooded in through them','They were above water','Sailors closed them in time'], correct: 1, fact: 'The lower gun ports were open for the salute. When the ship tilted, they dipped below the waterline and water flooded in instantly — sealing her fate.' },
+            { q: 'How many people approximately died?', options: ['None','30 to 50','200 to 300','Over 500'], correct: 1, fact: 'Between 30 and 50 people drowned — crew and their families who had boarded for the celebratory voyage. Hundreds more swam to safety.' },
+            { q: 'Who was Captain of the Vasa when she sank?', options: ['Karl Gyllenhielm','Söfring Hansson','Lars Eriksson','Per Larsson'], correct: 1, fact: 'Captain Söfring Hansson was arrested and blamed. An inquiry lasting months found no one guilty. The true fault lay with the king\'s design demands.' },
+            { q: 'In what depth of water did the Vasa finally rest?', options: ['8 meters','16 meters','32 meters','50 meters'], correct: 2, fact: 'The Vasa settled in 32 meters of cold, dark, low-salinity Baltic water — the exact conditions that would preserve her for 333 years.' },
+            { q: 'Who ultimately bore responsibility for the fatal design?', options: ['Captain Hansson','Admiral Gyllenhielm','King Gustav II Adolf','The Harbor Master'], correct: 2, fact: 'King Gustav II Adolf demanded two gun decks against his architect\'s advice. Delaying or defying the king was not an option anyone dared consider.' },
         ]
     },
     quiz3: {
         name: 'The King\'s Final Examination',
         questions: [
-            { q: 'Who discovered the Vasa wreck in modern times?', options: ['Jacques Cousteau','Alfred Nobel','Anders Franzen','Carl Linnaeus'], correct: 2 },
-            { q: 'In what year was the Vasa successfully raised from the harbor?', options: ['1956','1961','1975','1988'], correct: 1 },
-            { q: 'What percentage of the Vasa\'s original wood survived underwater?', options: ['About 40 percent','About 65 percent','About 95 percent','About 20 percent'], correct: 2 },
-            { q: 'When did the Vasa Museum officially open?', options: ['1961','1975','1990','2000'], correct: 2 },
-            { q: 'How many sculptural decorations adorned the Vasa?', options: ['About 100','About 700','About 2000','About 50'], correct: 1 },
+            { q: 'Who discovered the Vasa wreck in 1956?', options: ['Jacques Cousteau','Alfred Nobel','Anders Franzen','Carl Linnaeus'], correct: 2, fact: 'Anders Franzen (1918–1993) spent years convinced the Vasa lay preserved in Stockholm harbor. A core sample of black oak from the seabed confirmed he was right.' },
+            { q: 'In what year was the Vasa successfully raised?', options: ['1956','1961','1975','1988'], correct: 1, fact: 'On April 24, 1961, after 18 months of tunneling cables beneath the hull, the Vasa rose from 333 years of darkness — largely intact.' },
+            { q: 'What percentage of the original wood survived?', options: ['About 40%','About 65%','About 95%','About 20%'], correct: 2, fact: 'About 95% survived underwater — an extraordinary figure. Cold, dark, low-oxygen, low-salinity Baltic water created near-perfect preservation conditions.' },
+            { q: 'When did the Vasa Museum officially open?', options: ['1961','1975','1990','2000'], correct: 2, fact: 'The Vasa Museum on Djurgården island opened February 15, 1990. It now attracts over 1.5 million visitors per year.' },
+            { q: 'How many artifacts were recovered from the seabed?', options: ['About 500','About 5,000','Over 36,000','About 100,000'], correct: 2, fact: 'Over 36,000 individual artifacts: shoes, tools, coins, rope, food, a backgammon set, and the personal belongings of the crew — all frozen in 1628.' },
+            { q: 'What substance preserved the Vasa\'s wood?', options: ['Salt water solution','Polyethylene glycol','Formaldehyde','Beeswax'], correct: 1, fact: 'Polyethylene glycol (PEG) — a wax-like chemical — was sprayed on the Vasa for 17 years, replacing water in the wood cells and preventing collapse.' },
+            { q: 'How long did the wood preservation take?', options: ['3 years','8 years','17 years','25 years'], correct: 2, fact: 'Seventeen years of continuous PEG spraying (1961–1979) before the ship was stable enough for public display.' },
+            { q: 'What primarily saved the Vasa from decay?', options: ['Cold temperature','Low salinity — no shipworms','High water pressure','Complete darkness'], correct: 1, fact: 'The Baltic\'s low salinity means shipworms — the main destroyer of wooden wrecks worldwide — cannot survive there. This is why the Vasa survived when most wooden ships do not.' },
         ]
     }
 };
-// Shuffle quiz answers on load
+// Shuffle answer options on load (answer order randomized, correct index updated)
+function shuffleArray(arr) {
+    const a = [...arr];
+    for (let i = a.length-1; i > 0; i--) { const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+    return a;
+}
 Object.values(quizSets).forEach(set => {
     set.questions.forEach(q => {
         const correct = q.options[q.correct];
@@ -254,6 +270,15 @@ const maps = {
                   'His assistant Hein Jacobsson completed her. Nobody wants to tell the king he was wrong.'
               ]
             },
+            { id: 'art_notebook', name: '★ Master Henrik\'s Notebook', x: 22, y: 3, dir: 'down', isArtifact: true, xpReward: 30,
+              dialogue: ['★  MASTER HENRIK\'S NOTEBOOK', 'His stability calculations show the Vasa needed 120 tons of ballast to sail safely.', 'The king\'s redesign left space for only 42 tons.', 'This notebook was never presented to the court.', '+30 Scholar XP earned!']
+            },
+            { id: 'art_stability', name: '★ Stability Test Chalk Marks', x: 6, y: 15, dir: 'down', isArtifact: true, xpReward: 30,
+              dialogue: ['★  STABILITY TEST CHALK MARKS', 'These marks record the day 30 men ran back and forth across the deck.', 'The ship rocked so violently Admiral Fleming stopped the test and left — without filing a report.', 'No one dared tell the king.', '+30 Scholar XP earned!']
+            },
+            { id: 'art_cannon_mold', name: '★ Bronze Cannon Mold', x: 22, y: 13, dir: 'down', isArtifact: true, xpReward: 25,
+              dialogue: ['★  BRONZE CANNON MOLD', '64 bronze cannons were cast for the Vasa — each weighing over 1,200 kg.', 'The cannons alone were worth more than the ship itself.', 'Ironically, their weight on two decks was what doomed her.', '+25 Scholar XP earned!']
+            },
             { id: 'boss_shipyard', name: 'Master Shipwright', x: 12, y: 7, dir: 'down', isBoss: true, quizKey: 'quiz1', isSpirit: false,
               colors: { body: '#1a3a6a', skin: PAL.npcSkin, hair: '#d0c080', legs: '#102050', shoes: '#0a1030', satchel: false },
               dialogue: [
@@ -311,6 +336,12 @@ const maps = {
                   'Take it. Sail south to the water. Just keep clear of the hull — the current is bad around her.',
                   'And if you find any of our lost men out there... say a prayer for them.'
               ]
+            },
+            { id: 'art_cannon_ball', name: '★ Recovered Cannonball', x: 14, y: 6, dir: 'down', isArtifact: true, xpReward: 25,
+              dialogue: ['★  RECOVERED CANNONBALL', 'This iron cannonball was found on the harbor floor near where the Vasa sank.', '53 of the 64 bronze cannons were salvaged from the wreck in the 1660s using a diving bell.', 'The remaining cannons still lie somewhere in the Baltic today.', '+25 Scholar XP earned!']
+            },
+            { id: 'art_harbor_log', name: '★ Harbor Master\'s Log', x: 22, y: 8, dir: 'down', isArtifact: true, xpReward: 30,
+              dialogue: ['★  HARBOR MASTER\'S LOG', '"August 10, 1628 — The Vasa departed at approximately 3pm. Wind: light southerly."', '"She fired a salute. Heeled to port. Did not recover. Sank at 4pm."', '"Approximately 50 souls lost. The king has been notified."', '+30 Scholar XP earned!']
             },
             { id: 'boss_harbor', name: 'Admiral Karl Gyllenhielm', x: 12, y: 8, dir: 'down', isBoss: true, quizKey: 'quiz2', isSpirit: false,
               colors: { body: '#0a2050', skin: PAL.npcSkin, hair: '#c8c0a0', legs: '#061030', shoes: '#040818', satchel: false },
@@ -380,6 +411,12 @@ const maps = {
                   'And yet it\'s now one of the most visited museums in the world. Pretty crazy, right?'
               ]
             },
+            { id: 'art_vasa_model', name: '★ Vasa Scale Model', x: 18, y: 10, dir: 'down', isArtifact: true, xpReward: 25,
+              dialogue: ['★  VASA SCALE MODEL  (1:10)', 'This model shows the Vasa as she looked in 1628: vivid red, gold, and black.', 'All 700 sculptures were originally painted in brilliant colors.', 'None of that color survived 333 years at the bottom of the sea.', '+25 Scholar XP earned!']
+            },
+            { id: 'art_shoe', name: '★ A Sailor\'s Boot', x: 14, y: 3, dir: 'down', isArtifact: true, xpReward: 25,
+              dialogue: ['★  A SAILOR\'S BOOT', 'This boot was found on the seabed next to the wreck.', 'Over 700 personal items of clothing were recovered — many still holding the shape of the person who wore them.', 'They were frozen in time on August 10, 1628.', '+25 Scholar XP earned!']
+            },
             { id: 'ghost_king', name: 'Ghost of King Gustav II Adolf', x: 12, y: 7, dir: 'down', isBoss: true, quizKey: 'quiz3', isSpirit: true,
               colors: { body: '#304870', skin: '#c8d8e8', hair: '#d8d0a8', legs: '#1a2840', shoes: '#101828', satchel: false },
               dialogue: [
@@ -400,14 +437,27 @@ const maps = {
         width: COLS, height: ROWS,
         warps: [{ x: 4, y: 17, target: 'museum', toX: 4, toY: 16 }],
         npcs: [
+            { id: 'art_inquiry', name: '★ Royal Inquiry Transcript', x: 8, y: 5, dir: 'down', isArtifact: true, xpReward: 50,
+              dialogue: ['★  THE 1628 ROYAL INQUIRY', '"Stockholm, November 1628 — By order of His Majesty..."', 'The inquiry questioned the captain, officers, pilots, and builders.', 'Conclusion: "God\'s will and the weakness of the ship." No one convicted.', 'The truth was buried in politics for 333 years. Until now.', '+50 Scholar XP earned!']
+            },
             { id: 'archivist', name: 'Head Archivist', x: 12, y: 8, dir: 'down', isSpirit: false,
-              colors: { body: '#5a4530', skin: PAL.npcSkin, hair: '#d0c8a8', legs: '#3a2a18', shoes: '#201808', satchel: false },
+              colors: { body: '#5a4530', skin: PAL.npcSkin, hair: '#d0c8a8', legs: '#3a2a18', shoes: '#201808', satchel: true },
+              triggersEnding: true,
+              earlyDialogue: [
+                  'You have not yet gathered all three testimonies.',
+                  'Return when the Shipwright, the Admiral, and the King have all spoken.',
+                  'The captain\'s fate depends on all three.'
+              ],
               dialogue: [
-                  'You have proven yourself a true scholar of the Vasa\'s history.',
-                  'Your logbook is complete. Your knowledge is documented for all time.',
-                  'The Vasa reminds us: even the greatest ambitions can be undone by pride and haste.',
-                  'Every ship since 1628 has been designed with the Vasa\'s lessons in mind.',
-                  'Welcome to the archive. You have earned your place here.'
+                  'Young Erik. I have read your testimonies. Every one of them.',
+                  'The Shipwright\'s logbook. The Admiral\'s sworn statement. The King\'s own admission.',
+                  'This is more than enough.',
+                  'I am reopening the Royal Inquiry. Captain Söfring Hansson will be freed.',
+                  'You have done something remarkable, Erik. You used truth as a weapon.',
+                  'The Vasa was doomed by pride and politics — not by any sailor.',
+                  'Every great disaster in history gets covered up. Most stay covered.',
+                  'This one will not. Not because of the ship — but because of you.',
+                  'Your logbook is now part of the official record. This is your diploma.'
               ]
             },
         ]
@@ -701,6 +751,27 @@ function drawPixelChar(x, y, dir, isNpc, colors, bobOffset=0, isMoving=false) {
     ctx.restore();
 }
 
+// ── Artifact Sprite ────────────────────────────────────────────────────────────
+function drawArtifactSprite(x, y, collected) {
+    if (collected) {
+        // Faded outline only
+        ctx.strokeStyle = 'rgba(160,140,60,0.4)'; ctx.lineWidth=1;
+        ctx.strokeRect(x+8, y+6, 16, 20);
+        return;
+    }
+    // Glowing scroll/chest
+    ctx.fillStyle = PAL.parchment;
+    ctx.fillRect(x+8, y+6, 16, 20);
+    ctx.fillStyle = PAL.rope; // brown binding
+    ctx.fillRect(x+8, y+6, 16, 4);
+    ctx.fillRect(x+8, y+22, 16, 4);
+    ctx.fillRect(x+14, y+6, 4, 20);
+    // Star on scroll
+    ctx.fillStyle = PAL.gold;
+    ctx.fillRect(x+13, y+12, 6, 2);
+    ctx.fillRect(x+15, y+10, 2, 6);
+}
+
 // ── HUD ────────────────────────────────────────────────────────────────────────
 function drawHUD(mapName) {
     ctx.fillStyle = 'rgba(0,0,0,0.72)';
@@ -710,6 +781,13 @@ function drawHUD(mapName) {
     ctx.textAlign = 'left';
     ctx.fillText(mapName, 10, 24);
 
+    // Artifact count
+    const allArtifacts = Object.values(maps).flatMap(m => m.npcs).filter(n => n.isArtifact);
+    const foundArt = allArtifacts.filter(n => playerData.talkedToNpcs.includes(n.id)).length;
+    ctx.fillStyle = foundArt === allArtifacts.length ? PAL.gold : '#a09040';
+    ctx.textAlign = 'left';
+    ctx.fillText(`★ ${foundArt}/${allArtifacts.length}`, 200, 24);
+
     ctx.fillStyle = '#a0b0d0';
     ctx.textAlign = 'right';
     ctx.fillText(`LV ${playerData.level}  XP ${playerData.xp}/${playerData.level*50}`, 790, 24);
@@ -717,6 +795,8 @@ function drawHUD(mapName) {
     ctx.fillStyle = PAL.hpGreen;
     ctx.textAlign = 'center';
     ctx.fillText(`${playerData.correctAnswers}/${playerData.questionsAnswered} correct`, 400, 24);
+    ctx.fillStyle = '#5060a0'; ctx.font='7px "Press Start 2P"';
+    ctx.fillText('[C] CODEX', 400, 34);
     ctx.textAlign = 'left';
 
     // Quest tracker
@@ -795,25 +875,50 @@ function updateOverworld() {
         }
     }
 
+    // Codex
+    if (keyJustPressed('c') || keyJustPressed('C')) {
+        codexOpen = true; codexPage = 0; gameState = 'codex';
+        return;
+    }
+
     // Interact
     if (keyJustPressed(' ') || keyJustPressed('Enter') || keyJustPressed('z')) {
         const facingX = playerData.x + (playerData.dir==='right'?1:playerData.dir==='left'?-1:0);
         const facingY = playerData.y + (playerData.dir==='down'?1:playerData.dir==='up'?-1:0);
         const npc = map.npcs.find(n => n.x===facingX && n.y===facingY);
         if (npc) {
-            if (npc.isBoss && !playerData.defeatedBosses.includes(npc.quizKey)) {
+            if (npc.isArtifact) {
+                const collected = playerData.talkedToNpcs.includes(npc.id);
+                if (!collected) {
+                    startDialogue(npc.dialogue, () => {
+                        playerData.talkedToNpcs.push(npc.id);
+                        playerData.xp += (npc.xpReward || 25);
+                        spawnParticles(playerData.x*TILE+16, playerData.y*TILE, PAL.gold, 12);
+                    });
+                } else {
+                    startDialogue(['You have already examined this artifact.'], null);
+                }
+            } else if (npc.isBoss && !playerData.defeatedBosses.includes(npc.quizKey)) {
                 startDialogue(npc.dialogue, () => startBattle(npc));
             } else if (npc.isBoss) {
                 startDialogue(['You have already proven your knowledge here. Well done, scholar!'], null);
             } else {
                 const alreadyTalked = playerData.talkedToNpcs.includes(npc.id);
-                startDialogue(alreadyTalked ? [npc.dialogue[0]] : npc.dialogue, () => {
+                // Archivist: show different dialogue based on progress
+                let dlgLines = alreadyTalked ? [npc.dialogue[0]] : npc.dialogue;
+                if (npc.triggersEnding && playerData.defeatedBosses.length < 3) {
+                    dlgLines = npc.earlyDialogue || npc.dialogue;
+                }
+                startDialogue(dlgLines, () => {
                     if (!alreadyTalked) {
                         playerData.talkedToNpcs.push(npc.id);
                         if (!playerData.hasLogbook) playerData.hasLogbook = true;
                         if (npc.giveBoat && !playerData.hasBoat) {
                             playerData.hasBoat = true;
                             startDialogue(['You received the ROWBOAT! Sail south onto the harbor water to explore the wreck site.'], null);
+                        }
+                        if (npc.triggersEnding && playerData.defeatedBosses.length >= 3) {
+                            gameState = 'diploma'; diplomaTimer = 0; diplomaPhase = 0;
                         }
                     }
                 });
@@ -841,21 +946,30 @@ function drawOverworld() {
     const sr = Math.floor(camY/TILE), er = Math.min(map.height, sr+21);
     for (let y=sr; y<er; y++) for (let x=sc; x<ec; x++) drawTile(x, y, map.tiles[y][x], playerData.currentMap);
 
-    // NPCs
+    // NPCs + Artifacts
+    const fx = playerData.x+(playerData.dir==='right'?1:playerData.dir==='left'?-1:0);
+    const fy = playerData.y+(playerData.dir==='down'?1:playerData.dir==='up'?-1:0);
     map.npcs.forEach(npc => {
         const pulse = Math.sin(frameCount*0.06+npc.x)*0.3+0.7;
-        if (npc.isBoss && !playerData.defeatedBosses.includes(npc.quizKey)) {
-            ctx.fillStyle = `rgba(255,80,80,${pulse*0.4})`;
-            ctx.beginPath(); ctx.arc(npc.x*TILE+16, npc.y*TILE+8, 14, 0, Math.PI*2); ctx.fill();
+        if (npc.isArtifact) {
+            const collected = playerData.talkedToNpcs.includes(npc.id);
+            if (!collected) {
+                // Pulsing gold aura
+                ctx.fillStyle = `rgba(212,168,0,${pulse*0.35})`;
+                ctx.fillRect(npc.x*TILE-5, npc.y*TILE-5, TILE+10, TILE+10);
+            }
+            drawArtifactSprite(npc.x*TILE, npc.y*TILE, collected);
+        } else {
+            if (npc.isBoss && !playerData.defeatedBosses.includes(npc.quizKey)) {
+                ctx.fillStyle = `rgba(255,80,80,${pulse*0.4})`;
+                ctx.beginPath(); ctx.arc(npc.x*TILE+16, npc.y*TILE+8, 14, 0, Math.PI*2); ctx.fill();
+            }
+            const colors = { ...npc.colors, isSpirit: npc.isSpirit };
+            drawPixelChar(npc.x*TILE, npc.y*TILE, npc.dir, true, colors);
         }
-        const colors = { ...npc.colors, isSpirit: npc.isSpirit };
-        drawPixelChar(npc.x*TILE, npc.y*TILE, npc.dir, true, colors);
-
-        // Interaction indicator
-        const fx = playerData.x+(playerData.dir==='right'?1:playerData.dir==='left'?-1:0);
-        const fy = playerData.y+(playerData.dir==='down'?1:playerData.dir==='up'?-1:0);
+        // Interaction indicator (works for both NPCs and artifacts)
         if (npc.x===fx && npc.y===fy && Math.floor(frameCount/20)%2===0) {
-            ctx.fillStyle = PAL.swYellow;
+            ctx.fillStyle = npc.isArtifact ? PAL.gold : PAL.swYellow;
             ctx.fillRect(npc.x*TILE+12, npc.y*TILE-18, 8, 2);
             ctx.fillRect(npc.x*TILE+14, npc.y*TILE-16, 4, 4);
         }
@@ -968,16 +1082,16 @@ function startBattle(npc) {
     const quiz = quizSets[npc.quizKey];
     battleState = {
         enemy: npc.name, quizKey: npc.quizKey,
-        questions: [...quiz.questions],
+        questions: shuffleArray([...quiz.questions]).slice(0, 5), // pick 5 random from 8
         currentQ: 0, phase: 'question',
         playerHP: playerData.hp, enemyHP: 100, maxEnemyHP: 100,
         selected: 0, answered: false, wasCorrect: false,
         resultTimer: 0, isBoss: true,
         enemyColors: { ...npc.colors, isSpirit: npc.isSpirit },
         intro: npc.battleIntro || `${npc.name} challenges you!`,
+        combo: 0, comboMax: 0, introTimer: 0,
     };
     gameState = 'battleIntro';
-    battleState.introTimer = 0;
 }
 
 function updateBattle() {
@@ -997,10 +1111,15 @@ function updateBattle() {
             playerData.questionsAnswered++;
             if (battleState.wasCorrect) {
                 playerData.correctAnswers++;
-                battleState.enemyHP = Math.max(0, battleState.enemyHP - 20);
-                screenShake = 6;
-                spawnParticles(600, 300, PAL.swYellow, 8);
+                battleState.combo++;
+                if (battleState.combo > battleState.comboMax) battleState.comboMax = battleState.combo;
+                const dmg = battleState.combo >= 3 ? 28 : battleState.combo >= 2 ? 24 : 20;
+                battleState.enemyHP = Math.max(0, battleState.enemyHP - dmg);
+                screenShake = battleState.combo >= 3 ? 10 : 6;
+                spawnParticles(600, 300, battleState.combo >= 3 ? PAL.gold : PAL.swYellow, battleState.combo >= 2 ? 12 : 8);
+                if (battleState.combo >= 2) playerData.xp += 5; // streak bonus
             } else {
+                battleState.combo = 0;
                 battleState.playerHP = Math.max(0, battleState.playerHP - 15);
                 screenShake = 4;
                 spawnParticles(200, 300, '#d04040', 6);
@@ -1016,11 +1135,7 @@ function updateBattle() {
                 playerData.xp += 100;
                 if (playerData.xp >= playerData.level*50) { playerData.level++; playerData.maxHp+=10; playerData.hp=playerData.maxHp; }
                 playerData.hp = playerData.maxHp;
-                if (playerData.defeatedBosses.length >= 3) {
-                    gameState = 'diploma'; diplomaTimer = 0; diplomaPhase = 0;
-                } else {
-                    gameState = 'victory';
-                }
+                gameState = 'victory'; // always — diploma triggered by Head Archivist after quiz3
             } else if (battleState.playerHP <= 0) {
                 playerData.hp = Math.floor(playerData.maxHp * 0.5);
                 battleState.playerHP = playerData.hp; battleState.enemyHP = battleState.maxEnemyHP;
@@ -1034,100 +1149,177 @@ function updateBattle() {
     }
 }
 
-function drawBattle() {
-    // Background
-    const bg = ctx.createLinearGradient(0,0,0,600);
-    bg.addColorStop(0, '#060c18'); bg.addColorStop(1, '#0a1828');
-    ctx.fillStyle = bg; ctx.fillRect(0, 0, 800, 600);
-
-    // Stars
-    for (let i=0; i<30; i++) {
-        const sx=(i*37+frameCount*0.4)%800, sy=(i*53+frameCount*0.2)%300;
-        ctx.fillStyle=`rgba(200,220,255,${(Math.sin(frameCount*0.05+i)*0.3+0.5)*0.6})`;
-        ctx.fillRect(sx, sy, 2, 2);
+function drawBattleBackground(quizKey) {
+    if (quizKey === 'quiz1') {
+        // Shipyard — dark wood planks + forge glow
+        ctx.fillStyle = '#120a04'; ctx.fillRect(0,0,800,600);
+        for (let y=0; y<600; y+=26) {
+            ctx.fillStyle = `rgba(70,35,12,${0.25+Math.sin(y*0.08+frameCount*0.004)*0.08})`;
+            ctx.fillRect(0, y, 800, 24);
+            ctx.fillStyle = 'rgba(40,18,6,0.5)';
+            ctx.fillRect(0, y+24, 800, 2);
+        }
+        // Forge glow in corner
+        const fg = Math.sin(frameCount*0.07)*0.12+0.12;
+        const g1 = ctx.createRadialGradient(720,540,10,720,540,180);
+        g1.addColorStop(0,`rgba(255,100,20,${fg})`); g1.addColorStop(1,'rgba(255,60,0,0)');
+        ctx.fillStyle=g1; ctx.fillRect(0,0,800,600);
+    } else if (quizKey === 'quiz2') {
+        // Harbor — stormy water + rain
+        ctx.fillStyle = '#05080f'; ctx.fillRect(0,0,800,600);
+        for (let x=0; x<800; x+=42) {
+            const wh = 28 + Math.sin(x*0.05+frameCount*0.04)*14;
+            ctx.fillStyle=`rgba(0,30,70,${0.4+Math.sin(x*0.08+frameCount*0.025)*0.12})`;
+            ctx.fillRect(x, 420+Math.sin(x*0.04+frameCount*0.025)*10, 42, wh+200);
+        }
+        for (let i=0; i<22; i++) {
+            const rx=(i*73+frameCount*5)%800, ry=(i*41+frameCount*7)%480;
+            ctx.fillStyle='rgba(160,210,255,0.25)';
+            ctx.fillRect(rx-1, ry, 2, 9);
+        }
+        // Lightning flash
+        if (frameCount%180 < 3) { ctx.fillStyle='rgba(200,230,255,0.08)'; ctx.fillRect(0,0,800,600); }
+    } else if (quizKey === 'quiz3') {
+        // Museum ghost — ethereal fog + wisps
+        ctx.fillStyle = '#080d15'; ctx.fillRect(0,0,800,600);
+        for (let i=0; i<7; i++) {
+            const gx=(i*130+Math.sin(frameCount*0.01+i)*40+frameCount*0.2)%900-50;
+            const gy=220+Math.cos(frameCount*0.007+i*0.9)*70;
+            const gr = ctx.createRadialGradient(gx,gy,0,gx,gy,90+Math.sin(frameCount*0.03+i)*20);
+            gr.addColorStop(0,`rgba(60,100,180,${Math.sin(frameCount*0.04+i)*0.04+0.06})`);
+            gr.addColorStop(1,'rgba(30,60,120,0)');
+            ctx.fillStyle=gr; ctx.fillRect(0,0,800,600);
+        }
+    } else {
+        const bg = ctx.createLinearGradient(0,0,0,600);
+        bg.addColorStop(0,'#060c18'); bg.addColorStop(1,'#0a1828');
+        ctx.fillStyle=bg; ctx.fillRect(0,0,800,600);
     }
+    // Ambient stars
+    for (let i=0; i<20; i++) {
+        const sx=(i*37+frameCount*0.3)%800, sy=(i*53+frameCount*0.15)%280;
+        ctx.fillStyle=`rgba(200,220,255,${(Math.sin(frameCount*0.05+i)*0.25+0.35)*0.5})`;
+        ctx.fillRect(sx,sy,2,2);
+    }
+}
+
+function drawBattle() {
+    drawBattleBackground(battleState.quizKey);
 
     if (gameState === 'battleIntro') {
         const a = Math.min(1, battleState.introTimer/40);
         ctx.globalAlpha = a;
+        // Flash effect
+        if (battleState.introTimer < 6) { ctx.fillStyle='rgba(255,255,255,0.3)'; ctx.fillRect(0,0,800,600); }
         ctx.fillStyle = PAL.swYellow;
         ctx.font = '14px "Press Start 2P"';
         ctx.textAlign = 'center';
-        ctx.fillText(battleState.intro, 400, 200);
+        ctx.fillText(battleState.intro, 400, 195);
         ctx.fillStyle = '#a0b0d0';
-        ctx.font = '10px "Press Start 2P"';
-        ctx.fillText('Prove your knowledge!', 400, 240);
+        ctx.font = '9px "Press Start 2P"';
+        ctx.fillText('Answer correctly to deal damage!', 400, 228);
+        ctx.fillStyle = '#6080a8'; ctx.font='7px "Press Start 2P"';
+        ctx.fillText('Combo streaks deal bonus damage', 400, 252);
         ctx.globalAlpha = 1;
+        // Big enemy portrait on intro
+        ctx.save(); ctx.translate(400, 380); ctx.scale(2.2, 2.2);
+        drawPixelChar(-16, -32, battleState.enemyColors.isSpirit ? 'down' : 'down', true, battleState.enemyColors);
+        ctx.restore();
         drawParticles(); return;
     }
 
     const q = battleState.questions[battleState.currentQ];
     ctx.textAlign = 'center';
 
-    // Enemy sprite area
-    drawPixelChar(580, 120, 'left', true, battleState.enemyColors);
-    ctx.fillStyle = '#808090'; ctx.font = '9px "Press Start 2P"';
-    ctx.fillText(battleState.enemy, 590, 108);
+    // Enemy area — scaled up sprite
+    ctx.save(); ctx.translate(620, 165); ctx.scale(1.8, 1.8);
+    drawPixelChar(-16, -32, 'left', true, battleState.enemyColors);
+    ctx.restore();
+    // Enemy name + HP
+    ctx.fillStyle = battleState.enemyColors.isSpirit ? '#90b8e0' : '#909090';
+    ctx.font = '8px "Press Start 2P"'; ctx.textAlign='center';
+    ctx.fillText(battleState.enemy, 620, 82);
+    ctx.fillStyle = '#202030'; ctx.fillRect(480, 88, 270, 14);
+    const hpPct = battleState.enemyHP / battleState.maxEnemyHP;
+    ctx.fillStyle = hpPct > 0.5 ? PAL.hpGreen : hpPct > 0.25 ? PAL.hpYellow : PAL.hpRed;
+    ctx.fillRect(481, 89, Math.max(0, hpPct*268), 12);
+    ctx.strokeStyle = '#5060a0'; ctx.lineWidth=1; ctx.strokeRect(480, 88, 270, 14);
+    ctx.fillStyle='#8090b0'; ctx.font='7px "Press Start 2P"';
+    ctx.fillText(`${battleState.enemyHP}/100`, 620, 120);
 
-    // Enemy HP bar
-    ctx.fillStyle = '#303040'; ctx.fillRect(480, 75, 250, 14);
-    ctx.fillStyle = battleState.enemyHP > 50 ? PAL.hpGreen : battleState.enemyHP > 25 ? PAL.hpYellow : PAL.hpRed;
-    ctx.fillRect(481, 76, Math.max(0, (battleState.enemyHP/battleState.maxEnemyHP)*248), 12);
-    ctx.strokeStyle = '#5060a0'; ctx.lineWidth=1; ctx.strokeRect(480, 75, 250, 14);
+    // Player side
+    ctx.fillStyle='#909090'; ctx.font='8px "Press Start 2P"'; ctx.textAlign='left';
+    ctx.fillText('Young Erik', 50, 90);
+    ctx.fillStyle='#202030'; ctx.fillRect(50, 96, 210, 12);
+    const phPct = battleState.playerHP/playerData.maxHp;
+    ctx.fillStyle = phPct > 0.5 ? PAL.hpGreen : phPct > 0.25 ? PAL.hpYellow : PAL.hpRed;
+    ctx.fillRect(51, 97, Math.max(0,phPct*208), 10);
+    ctx.strokeStyle='#405070'; ctx.lineWidth=1; ctx.strokeRect(50,96,210,12);
+    ctx.fillStyle='#8090b0'; ctx.font='7px "Press Start 2P"';
+    ctx.fillText(`${battleState.playerHP} / ${playerData.maxHp} HP`, 50, 124);
 
-    // Player HP bar
-    ctx.fillStyle = '#808090'; ctx.font = '8px "Press Start 2P"';
-    ctx.textAlign = 'left';
-    ctx.fillText(`HP: ${battleState.playerHP}/${playerData.maxHp}`, 50, 178);
-    ctx.fillStyle = '#303040'; ctx.fillRect(50, 182, 200, 12);
-    ctx.fillStyle = battleState.playerHP > 50 ? PAL.hpGreen : battleState.playerHP > 25 ? PAL.hpYellow : PAL.hpRed;
-    ctx.fillRect(51, 183, Math.max(0,(battleState.playerHP/playerData.maxHp)*198), 10);
+    // Streak indicator
+    if (battleState.combo >= 2) {
+        const sc = battleState.combo >= 3 ? PAL.gold : '#f08020';
+        ctx.fillStyle = sc; ctx.font='9px "Press Start 2P"'; ctx.textAlign='left';
+        ctx.fillText(`${battleState.combo}✗ STREAK!`, 50, 160);
+        if (battleState.combo >= 3) {
+            ctx.fillStyle='rgba(212,168,0,0.15)'; ctx.fillRect(0,0,800,600);
+        }
+    }
 
-    // Question box
-    ctx.fillStyle = 'rgba(0,0,0,0.85)';
-    ctx.fillRect(30, 230, 740, 80);
-    ctx.strokeStyle = PAL.swBlue; ctx.lineWidth=2; ctx.strokeRect(30, 230, 740, 80);
-    ctx.fillStyle = '#d0d8f0';
-    ctx.font = '9px "Press Start 2P"';
-    ctx.textAlign = 'center';
-    wrapTextCentered(q.q, 400, 268, 680, 20);
+    // Question counter + box
+    ctx.fillStyle='#5070a0'; ctx.font='7px "Press Start 2P"'; ctx.textAlign='center';
+    ctx.fillText(`QUESTION  ${battleState.currentQ+1} / ${battleState.questions.length}`, 400, 225);
+    ctx.fillStyle='rgba(0,0,0,0.88)'; ctx.fillRect(30,232,740,78);
+    ctx.strokeStyle=PAL.swBlue; ctx.lineWidth=2; ctx.strokeRect(30,232,740,78);
+    ctx.fillStyle='#d0d8f0'; ctx.font='9px "Press Start 2P"'; ctx.textAlign='center';
+    wrapTextCentered(q.q, 400, 270, 680, 20);
 
     // Answer options
     if (battleState.phase === 'question') {
         for (let i=0; i<4; i++) {
             const ox=60+(i%2)*370, oy=330+(Math.floor(i/2))*56;
-            const isSelected = battleState.selected === i;
-            ctx.fillStyle = isSelected ? 'rgba(0,106,167,0.5)' : 'rgba(0,0,0,0.6)';
-            ctx.fillRect(ox, oy, 340, 46);
-            ctx.strokeStyle = isSelected ? PAL.swYellow : '#304060';
-            ctx.lineWidth = isSelected ? 2 : 1;
-            ctx.strokeRect(ox, oy, 340, 46);
-            ctx.fillStyle = isSelected ? PAL.swYellow : '#a0b0d0';
-            ctx.font = '8px "Press Start 2P"';
-            ctx.textAlign = 'left';
+            const isSel = battleState.selected===i;
+            ctx.fillStyle = isSel ? 'rgba(0,106,167,0.5)' : 'rgba(0,0,0,0.6)';
+            ctx.fillRect(ox,oy,340,46);
+            ctx.strokeStyle = isSel ? PAL.swYellow : '#304060';
+            ctx.lineWidth = isSel ? 2 : 1; ctx.strokeRect(ox,oy,340,46);
+            ctx.fillStyle = isSel ? PAL.swYellow : '#a0b0d0';
+            ctx.font='8px "Press Start 2P"'; ctx.textAlign='left';
             wrapText(q.options[i], ox+12, oy+17, 316, 16);
         }
     } else if (battleState.phase === 'result') {
-        const correct = battleState.wasCorrect;
-        ctx.fillStyle = correct ? 'rgba(0,100,0,0.7)' : 'rgba(100,0,0,0.7)';
-        ctx.fillRect(30, 320, 740, 200);
-        ctx.strokeStyle = correct ? PAL.hpGreen : PAL.hpRed;
-        ctx.lineWidth=2; ctx.strokeRect(30, 320, 740, 200);
-        ctx.fillStyle = correct ? PAL.hpGreen : PAL.hpRed;
-        ctx.font = '16px "Press Start 2P"';
-        ctx.textAlign = 'center';
-        ctx.fillText(correct ? 'CORRECT!' : 'WRONG!', 400, 370);
-        if (!correct) {
-            ctx.fillStyle = '#d0d8f0'; ctx.font='8px "Press Start 2P"';
-            ctx.fillText(`Correct answer: ${q.options[q.correct]}`, 400, 410);
+        const corr = battleState.wasCorrect;
+        ctx.fillStyle = corr ? 'rgba(0,90,0,0.75)' : 'rgba(100,0,0,0.75)';
+        ctx.fillRect(30,322,740,218);
+        ctx.strokeStyle = corr ? PAL.hpGreen : PAL.hpRed;
+        ctx.lineWidth=2; ctx.strokeRect(30,322,740,218);
+        ctx.fillStyle = corr ? PAL.hpGreen : PAL.hpRed;
+        ctx.font='16px "Press Start 2P"'; ctx.textAlign='center';
+        ctx.fillText(corr ? 'CORRECT!' : 'WRONG!', 400, 368);
+        if (corr && battleState.combo >= 2) {
+            ctx.fillStyle=PAL.gold; ctx.font='10px "Press Start 2P"';
+            ctx.fillText(`${battleState.combo}x STREAK — EXTRA DAMAGE!`, 400, 396);
+        }
+        if (!corr) {
+            ctx.fillStyle='#d0d8f0'; ctx.font='8px "Press Start 2P"';
+            ctx.fillText(`Correct answer: ${q.options[q.correct]}`, 400, 398);
+        }
+        // Historical fact — always shown
+        if (q.fact) {
+            ctx.fillStyle = corr ? 'rgba(160,220,255,0.9)' : 'rgba(160,200,255,0.8)';
+            ctx.font='7px "Press Start 2P"';
+            ctx.fillStyle = '#90b8e0';
+            wrapTextCentered('DID YOU KNOW: ' + q.fact, 400, corr ? 420 : 440, 690, 16);
         }
         if (battleState.resultTimer > 50 && Math.floor(frameCount/20)%2===0) {
-            ctx.fillStyle = '#8090b0'; ctx.font='8px "Press Start 2P"';
-            ctx.fillText('Press SPACE to continue', 400, 490);
+            ctx.fillStyle='#8090b0'; ctx.font='8px "Press Start 2P"';
+            ctx.fillText('Press SPACE to continue', 400, 516);
         }
     }
 
-    ctx.textAlign = 'left';
+    ctx.textAlign='left';
     drawParticles();
 }
 
@@ -1172,9 +1364,13 @@ function drawVictory() {
     (learnings[battleState.quizKey]||'').split('\n').forEach((l,i) => ctx.fillText(l, 400, 400+i*20));
 
     if (battleState.resultTimer > 60) {
+        const nextHints = {
+            quiz1: 'Head south to the harbor warp!',
+            quiz2: '333 years pass... The Vasa is raised from the deep.',
+            quiz3: 'One more step. Travel to the Archive.'
+        };
         ctx.fillStyle = '#70d070'; ctx.font = '10px "Press Start 2P"';
-        const hints = { quiz1: 'Walk south to the harbor warp!', quiz2: '333 years pass... The Vasa is raised!' };
-        ctx.fillText(hints[battleState.quizKey]||'', 400, 480);
+        ctx.fillText(nextHints[battleState.quizKey]||'', 400, 480);
     }
     if (battleState.resultTimer > 60 && Math.floor(frameCount/20)%2===0) {
         ctx.fillStyle = '#8090b0'; ctx.font='8px "Press Start 2P"';
@@ -1186,13 +1382,19 @@ function drawVictory() {
         const qk = battleState.quizKey;
         battleState = null; playerData.hp = playerData.maxHp;
         if (qk === 'quiz2') {
-            // Time-jump to the museum — player travels 333 years forward
             startDialogue([
-                'The Admiral signs your logbook. Testimony secured.',
+                'The Admiral signs your logbook. Second testimony secured.',
                 '333 years pass...',
-                'The Vasa is raised from the harbor in 1961. A museum is built around her.',
-                'Your spirit travels forward through time — to the Vasa Museum, 1990.'
+                'The Vasa is raised from the harbor on April 24, 1961.',
+                'A museum is built around her. Your spirit travels forward — to 1990.'
             ], () => startMapTransition('museum', 4, 9));
+        } else if (qk === 'quiz3') {
+            startDialogue([
+                'The King\'s ghost bows his head. "Erik... three testimonies. It is enough."',
+                '"The Shipwright. The Admiral. Now me — the man who ordered it all."',
+                '"Go to the Archive. Present your case. The captain awaits his verdict."',
+                'Travel through the Museum to the Archive entrance at the south wall.'
+            ], () => startMapTransition('archive', 12, 8));
         } else {
             gameState = 'overworld';
         }
@@ -1250,11 +1452,14 @@ function drawDiploma() {
     ctx.textAlign='center';
     if (diplomaPhase===0) {
         const a=Math.min(1,diplomaTimer/40);
-        ctx.fillStyle=`rgba(252,209,22,${a})`; ctx.font='16px "Press Start 2P"';
-        ctx.fillText('The Ghost of King Gustav II Adolf says:', 400, 200);
-        ctx.fillStyle=`rgba(200,216,240,${a})`; ctx.font='11px "Press Start 2P"';
+        ctx.fillStyle=`rgba(100,200,100,${a})`; ctx.font='12px "Press Start 2P"';
+        ctx.fillText('CASE CLOSED', 400, 170);
+        ctx.fillStyle=`rgba(252,209,22,${a})`; ctx.font='10px "Press Start 2P"';
+        ctx.fillText('Captain Söfring Hansson: RELEASED', 400, 210);
+        ctx.fillStyle=`rgba(200,216,240,${a})`; ctx.font='9px "Press Start 2P"';
         ctx.fillText('"Young Erik... you have documented the truth."', 400, 250);
-        ctx.fillText('"History will remember the Vasa — and you."', 400, 280);
+        ctx.fillText('"The Vasa was built wrong. Not sailed wrong."', 400, 274);
+        ctx.fillText('"History will remember what you did here."', 400, 298);
     }
 
     if (diplomaPhase >= 1) {
@@ -1446,6 +1651,76 @@ function drawSlideshowIcon(icon, accent) {
     }
 }
 
+// ── Codex ──────────────────────────────────────────────────────────────────────
+function updateCodex() {
+    if (keyJustPressed('ArrowLeft')) codexPage = Math.max(0, codexPage - 1);
+    if (keyJustPressed('ArrowRight')) codexPage++;
+    if (keyJustPressed('c') || keyJustPressed('C') || keyJustPressed('Escape')) {
+        codexOpen = false; gameState = 'overworld';
+    }
+}
+
+function drawCodex() {
+    // Draw overworld underneath
+    drawOverworld();
+    // Overlay panel
+    ctx.fillStyle = 'rgba(8,6,3,0.94)'; ctx.fillRect(30,20,740,560);
+    ctx.strokeStyle = PAL.gold; ctx.lineWidth=2; ctx.strokeRect(30,20,740,560);
+    ctx.strokeStyle = 'rgba(212,168,0,0.3)'; ctx.lineWidth=1; ctx.strokeRect(38,28,724,544);
+
+    ctx.fillStyle = PAL.gold; ctx.font='11px "Press Start 2P"'; ctx.textAlign='center';
+    ctx.fillText('FIELD NOTES', 400, 56);
+    ctx.fillStyle = '#806030'; ctx.font='7px "Press Start 2P"';
+    ctx.fillText('Evidence gathered for the Royal Inquiry', 400, 74);
+    ctx.strokeStyle='rgba(212,168,0,0.4)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(60,84); ctx.lineTo(740,84); ctx.stroke();
+
+    // Collect all non-artifact NPCs the player has talked to
+    const allNpcs = Object.values(maps).flatMap(m => m.npcs).filter(n => !n.isArtifact && !n.isBoss);
+    const talked = allNpcs.filter(n => playerData.talkedToNpcs.includes(n.id));
+
+    if (talked.length === 0) {
+        ctx.fillStyle = '#5060a0'; ctx.font='9px "Press Start 2P"'; ctx.textAlign='center';
+        ctx.fillText('No witnesses interviewed yet.', 400, 300);
+        ctx.fillStyle='#384060'; ctx.font='8px "Press Start 2P"';
+        ctx.fillText('Speak to people to build your case.', 400, 328);
+    } else {
+        const pi = ((codexPage % talked.length) + talked.length) % talked.length;
+        const npc = talked[pi];
+        ctx.fillStyle = '#d0b060'; ctx.font='10px "Press Start 2P"'; ctx.textAlign='left';
+        ctx.fillText(npc.name, 60, 116);
+        ctx.fillStyle = '#4060a0'; ctx.font='7px "Press Start 2P"';
+        const mapNames = { shipyard:'Royal Shipyard, 1628', harbor:'Stockholm Harbor, 1628', museum:'Vasa Museum, 1990', archive:'Vasa Archive' };
+        const loc = Object.keys(maps).find(k => maps[k].npcs.includes(npc));
+        ctx.fillText(mapNames[loc]||'', 60, 134);
+
+        // Show all their dialogue lines as testimony
+        ctx.fillStyle = '#c0d0e8'; ctx.font='8px "Press Start 2P"'; ctx.textAlign='left';
+        let ty = 162;
+        npc.dialogue.forEach(line => {
+            if (ty > 490) return;
+            ctx.fillStyle = '#c0d0e8';
+            wrapText('"' + line + '"', 60, ty, 680, 18);
+            ty += 18 * Math.ceil(ctx.measureText('"' + line + '"').width / 680) + 4;
+        });
+
+        // Navigation
+        ctx.fillStyle='#506080'; ctx.font='7px "Press Start 2P"'; ctx.textAlign='center';
+        ctx.fillText(`Witness ${pi+1} of ${talked.length}  —  ◄► to browse`, 400, 530);
+    }
+
+    // Artifact section
+    const artFound = Object.values(maps).flatMap(m => m.npcs).filter(n => n.isArtifact && playerData.talkedToNpcs.includes(n.id));
+    const artTotal = Object.values(maps).flatMap(m => m.npcs).filter(n => n.isArtifact).length;
+    ctx.fillStyle = artFound.length === artTotal ? PAL.gold : '#806030';
+    ctx.font='7px "Press Start 2P"'; ctx.textAlign='center';
+    ctx.fillText(`★ Artifacts found: ${artFound.length} / ${artTotal}`, 400, 552);
+
+    ctx.fillStyle='#405070'; ctx.font='7px "Press Start 2P"';
+    ctx.fillText('[C] or [ESC] to close', 400, 570);
+    ctx.textAlign='left';
+}
+
 // ── Title Screen ───────────────────────────────────────────────────────────────
 function updateTitle() {
     titleBlink++;
@@ -1468,11 +1743,22 @@ function drawTitle() {
         ctx.fillRect(x,580-h,32,h+20);
     }
 
-    // Ship silhouette
+    // Static large ship silhouette left
     ctx.fillStyle='rgba(40,20,10,0.7)';
     ctx.fillRect(80,490,300,20); ctx.fillRect(100,480,260,12); ctx.fillRect(120,440,6,42); ctx.fillRect(180,400,4,82);
     ctx.fillStyle='rgba(30,15,8,0.5)';
     ctx.fillRect(130,440,50,42); ctx.fillRect(184,400,40,80);
+    // Small ship sailing across the water
+    const shipX = (frameCount * 0.6 + 100) % 1000 - 100;
+    const shipBob = Math.sin(frameCount * 0.04) * 3;
+    ctx.fillStyle='rgba(50,25,10,0.8)';
+    ctx.fillRect(shipX, 556+shipBob, 80, 10);
+    ctx.fillRect(shipX+8, 548+shipBob, 64, 10);
+    ctx.fillRect(shipX+34, 520+shipBob, 3, 30);
+    ctx.fillRect(shipX+50, 508+shipBob, 3, 42);
+    ctx.fillStyle='rgba(240,220,180,0.4)';
+    ctx.fillRect(shipX+37, 522+shipBob, 18, 18); // sail
+    ctx.fillRect(shipX+53, 510+shipBob, 14, 26); // sail 2
 
     // Stars
     for(let i=0;i<50;i++){const sx=(i*47)%800,sy=(i*31)%300;ctx.fillStyle=`rgba(200,220,255,${(Math.sin(frameCount*0.03+i)*0.4+0.5)*0.7})`;ctx.fillRect(sx,sy,2,2);}
@@ -1509,12 +1795,13 @@ function drawTitle() {
     if (titleSelection===1) {
         ctx.fillStyle='rgba(0,0,0,0.85)'; ctx.fillRect(100,460,600,120);
         ctx.strokeStyle=PAL.swBlue; ctx.lineWidth=1; ctx.strokeRect(100,460,600,120);
-        ctx.fillStyle='#c0d0e0'; ctx.font='8px "Press Start 2P"'; ctx.textAlign='left';
-        ctx.fillText('Arrow Keys: Move / Select options',120,484);
-        ctx.fillText('SPACE / Enter: Confirm / Interact',120,504);
-        ctx.fillText('Talk to NPCs to learn history.',120,524);
-        ctx.fillText('Win quiz battles to progress to new maps.',120,544);
-        ctx.fillText('Defeat 3 quiz bosses to earn your diploma!',120,564);
+        ctx.fillStyle='#c0d0e0'; ctx.font='7px "Press Start 2P"'; ctx.textAlign='left';
+        ctx.fillText('Arrow Keys: Move / Select',120,480);
+        ctx.fillText('SPACE / Enter: Interact / Confirm',120,496);
+        ctx.fillText('[C]: Open Codex (field notes)',120,512);
+        ctx.fillText('Find ★ artifacts for bonus XP + history facts',120,528);
+        ctx.fillText('Combo streaks deal extra battle damage!',120,544);
+        ctx.fillText('Defeat 3 quiz bosses — then reach the Archive.',120,560);
     }
     ctx.textAlign='left';
 }
@@ -1574,6 +1861,7 @@ function resetGame() {
     playerData = { x:5,y:8,dir:'down',moving:false,moveProgress:0,targetX:5,targetY:8, xp:0,level:1,hp:100,maxHp:100,wisdom:10, questionsAnswered:0,correctAnswers:0, defeatedBosses:[],inventory:[],currentMap:'shipyard',name:'Young Erik',hasLogbook:false,hasBoat:false,visitedArtifacts:[],talkedToNpcs:[] };
     battleState=null; diplomaTimer=0; diplomaPhase=0;
     titleSelection=0; prologueStep=0; prologueTimer=0; prologueTextTimer=0;
+    codexOpen=false; codexPage=0;
     particles=[];
     Object.values(quizSets).forEach(set=>{
         set.questions.forEach(q=>{
@@ -1602,6 +1890,7 @@ function update() {
         case 'diploma': updateDiploma(); break;
         case 'mapTransition': updateMapTransition(); break;
         case 'slideshow': updateSlideshow(); break;
+        case 'codex': updateCodex(); break;
     }
 }
 
@@ -1617,6 +1906,7 @@ function draw() {
         case 'diploma': drawDiploma(); break;
         case 'mapTransition': drawMapTransition(); break;
         case 'slideshow': drawSlideshow(); break;
+        case 'codex': drawCodex(); break;
     }
 }
 
