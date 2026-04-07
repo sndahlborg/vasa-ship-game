@@ -1957,82 +1957,127 @@ function updateTitle() {
 }
 
 function drawTitle() {
+    // Deep night sky gradient
     const bg=ctx.createLinearGradient(0,0,0,600);
-    bg.addColorStop(0,'#020810'); bg.addColorStop(0.6,'#030c18'); bg.addColorStop(1,'#040f1a');
+    bg.addColorStop(0,'#02050e'); bg.addColorStop(0.5,'#040a18'); bg.addColorStop(1,'#061020');
     ctx.fillStyle=bg; ctx.fillRect(0,0,800,600);
 
-    // Dark murky water at base
-    for(let x=0;x<800;x+=32) {
-        const h=18+Math.sin((x/60)+frameCount*0.015)*6;
-        ctx.fillStyle=`rgba(3,15,28,${0.5+Math.sin(x*0.05+frameCount*0.02)*0.08})`;
-        ctx.fillRect(x,580-h,32,h+20);
+    // Twinkling stars
+    for(let i=0;i<60;i++){
+        const sx=(i*47+i*i*3)%800, sy=(i*31+i*7)%320;
+        const twinkle=Math.sin(frameCount*0.04+i*1.3)*0.4+0.6;
+        ctx.fillStyle=`rgba(200,220,255,${twinkle*0.75})`;
+        ctx.fillRect(sx,sy,i%5===0?2:1,i%5===0?2:1);
     }
 
-    // Slow rising bubbles in background
-    for(let i=0;i<10;i++){
-        const bx=(i*80+20+Math.sin(frameCount*0.015+i)*8)%800;
-        const by=600-((frameCount*0.5+i*60)%620);
-        ctx.fillStyle=`rgba(20,50,70,${0.12+Math.sin(frameCount*0.04+i)*0.04})`;
-        ctx.beginPath(); ctx.arc(bx, by, 1+i%3, 0, Math.PI*2); ctx.fill();
+    // Moon
+    ctx.fillStyle='rgba(220,230,255,0.18)';
+    ctx.beginPath(); ctx.arc(660,80,36,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='rgba(10,8,20,0.55)';
+    ctx.beginPath(); ctx.arc(674,74,34,0,Math.PI*2); ctx.fill(); // crescent cutout
+
+    // Moonbeam shimmer on water
+    for(let i=0;i<8;i++){
+        const mx=620+i*10+Math.sin(frameCount*0.03+i)*4;
+        const mAlpha=0.04+Math.sin(frameCount*0.05+i)*0.02;
+        ctx.fillStyle=`rgba(180,200,255,${mAlpha})`;
+        ctx.fillRect(mx,400+i*22,3+i%3,22);
     }
 
-    // Sunken ship silhouette — tilted, at the bottom, like it's resting on seabed
+    // Sunken ship on seabed — large, dark, partially buried
     ctx.save();
-    ctx.translate(200, 500);
-    ctx.rotate(0.05);
-    ctx.fillStyle='rgba(10,5,2,0.8)';
-    ctx.fillRect(-140, -18, 280, 28);  // hull
-    ctx.fillRect(-120, -34, 240, 18);  // upper hull
-    ctx.fillRect(-18, -110, 7, 80);    // foremast
-    ctx.fillRect(40, -140, 6, 110);    // mainmast
-    ctx.fillStyle='rgba(15,8,3,0.45)';
-    ctx.fillRect(-14, -106, 22, 36);   // decayed sail
-    ctx.fillRect(42, -136, 18, 50);    // decayed sail 2
+    ctx.translate(140, 510);
+    ctx.rotate(0.07);
+    ctx.fillStyle='rgba(8,4,2,0.92)';
+    ctx.fillRect(-150,-20,300,32);   // hull
+    ctx.fillRect(-130,-38,260,20);   // upper deck
+    ctx.fillRect(-60,-36,20,18);     // gun port row
+    ctx.fillRect(20,-36,20,18);
+    ctx.fillRect(-10,-120,8,84);     // foremast — broken angle
+    ctx.fillRect(50,-155,7,120);     // mainmast
+    ctx.fillStyle='rgba(12,6,3,0.5)';
+    ctx.fillRect(-8,-116,28,44);     // torn sail
+    ctx.fillRect(52,-150,22,60);     // torn sail 2
+    // barnacle dots on hull
+    for(let i=0;i<12;i++){
+        ctx.fillStyle=`rgba(20,18,14,0.7)`;
+        ctx.fillRect(-130+(i*22),8,4,4);
+    }
     ctx.restore();
 
-    // Dim stars — very faint, like murk particles
-    for(let i=0;i<30;i++){const sx=(i*47)%800,sy=(i*31)%280;ctx.fillStyle=`rgba(80,100,120,${(Math.sin(frameCount*0.025+i)*0.2+0.3)*0.5})`;ctx.fillRect(sx,sy,1,1);}
+    // Animated water surface
+    for(let x=0;x<800;x+=32) {
+        const h=22+Math.sin((x/50)+frameCount*0.025)*10;
+        const alpha=0.35+Math.sin(x*0.04+frameCount*0.03)*0.1;
+        ctx.fillStyle=`rgba(4,18,38,${alpha})`;
+        ctx.fillRect(x,575-h,33,h+26);
+    }
+
+    // Sailing ship moving across — heading to its doom
+    const shipX=(frameCount*0.7+200)%1100-150;
+    const shipBob=Math.sin(frameCount*0.045)*4;
+    ctx.fillStyle='rgba(60,30,12,0.88)';
+    ctx.fillRect(shipX,554+shipBob,90,12);        // hull
+    ctx.fillRect(shipX+10,544+shipBob,70,12);     // upper hull
+    ctx.fillRect(shipX+36,510+shipBob,4,36);      // foremast
+    ctx.fillRect(shipX+55,496+shipBob,4,50);      // mainmast
+    ctx.fillStyle='rgba(220,200,160,0.55)';
+    ctx.fillRect(shipX+38,512+shipBob,20,20);     // sail
+    ctx.fillRect(shipX+57,498+shipBob,16,30);     // sail 2
+    // wake
+    ctx.fillStyle='rgba(20,60,100,0.25)';
+    ctx.fillRect(shipX-20,562+shipBob,22,4);
+    ctx.fillRect(shipX-40,564+shipBob,22,2);
+
+    // Rising bubbles from the wreck
+    for(let i=0;i<8;i++){
+        const bx=60+(i*22)+Math.sin(frameCount*0.02+i*0.8)*6;
+        const by=520-((frameCount*0.4+i*65)%520);
+        const ba=0.15+Math.sin(frameCount*0.05+i)*0.05;
+        ctx.fillStyle=`rgba(30,70,100,${ba})`;
+        ctx.beginPath(); ctx.arc(bx,by,1+(i%3),0,Math.PI*2); ctx.fill();
+    }
 
     ctx.textAlign='center';
-    // Title — aged brass with glow
-    ctx.shadowColor='#8a6020'; ctx.shadowBlur=8;
-    ctx.fillStyle=PAL.swYellow; ctx.font='36px "Press Start 2P"';
-    ctx.fillText('VASA', 400, 120);
-    ctx.shadowBlur=4;
-    ctx.fillStyle='rgba(200,160,60,0.75)'; ctx.font='14px "Press Start 2P"';
+
+    // Title glow + text
+    ctx.shadowColor='#c89020'; ctx.shadowBlur=16;
+    ctx.fillStyle=PAL.swYellow; ctx.font='40px "Press Start 2P"';
+    ctx.fillText('VASA', 400, 118);
+    ctx.shadowBlur=6;
+    ctx.fillStyle='rgba(220,180,70,0.85)'; ctx.font='14px "Press Start 2P"';
     ctx.fillText('THE SUNKEN PRIDE', 400, 158);
     ctx.shadowBlur=0; ctx.shadowColor='transparent';
-    ctx.strokeStyle='rgba(90,58,24,0.6)'; ctx.lineWidth=2;
-    ctx.beginPath(); ctx.moveTo(200,170); ctx.lineTo(600,170); ctx.stroke();
-    ctx.fillStyle='#5a4828'; ctx.font='8px "Press Start 2P"';
-    ctx.fillText('An Educational Adventure — Stockholm, 1628', 400, 195);
 
-    // Dark divider bar
-    ctx.fillStyle='rgba(40,25,8,0.6)'; ctx.fillRect(0,215,800,4);
-    ctx.fillStyle='rgba(60,38,12,0.4)'; ctx.fillRect(0,219,800,4);
+    // Swedish flag bar
+    ctx.fillStyle='#006aa7'; ctx.fillRect(0,172,800,5);
+    ctx.fillStyle='#fecc02'; ctx.fillRect(0,177,800,4);
+
+    ctx.fillStyle='rgba(160,140,100,0.7)'; ctx.font='8px "Press Start 2P"';
+    ctx.fillText('An Educational Adventure — Stockholm, 1628', 400, 202);
 
     // Menu
     const opts=['START GAME','HOW TO PLAY'];
     opts.forEach((o,i)=>{
         const selected=titleSelection===i;
-        ctx.fillStyle=selected?'rgba(40,20,5,0.6)':'rgba(5,3,1,0.5)';
-        ctx.fillRect(260,340+i*60,280,44);
-        ctx.strokeStyle=selected?PAL.swYellow:'#3a2810';
-        ctx.lineWidth=selected?2:1; ctx.strokeRect(260,340+i*60,280,44);
-        ctx.fillStyle=selected?PAL.swYellow:'#5a4020';
+        ctx.fillStyle=selected?'rgba(0,60,120,0.45)':'rgba(4,8,18,0.55)';
+        ctx.fillRect(260,338+i*60,280,44);
+        ctx.strokeStyle=selected?PAL.swYellow:'#1e3050';
+        ctx.lineWidth=selected?2:1; ctx.strokeRect(260,338+i*60,280,44);
+        ctx.fillStyle=selected?PAL.swYellow:'#4a6080';
         ctx.font='10px "Press Start 2P"'; ctx.textAlign='center';
-        ctx.fillText(o,400,368+i*60);
-        if(selected&&Math.floor(titleBlink/15)%2===0){ctx.fillStyle=PAL.swYellow;ctx.fillText('>',248,368+i*60);}
+        ctx.fillText(o,400,366+i*60);
+        if(selected&&Math.floor(titleBlink/15)%2===0){ctx.fillStyle=PAL.swYellow;ctx.fillText('>',248,366+i*60);}
     });
 
     if (titleSelection===1) {
-        ctx.fillStyle='rgba(5,3,1,0.92)'; ctx.fillRect(100,460,600,120);
-        ctx.strokeStyle='#3a2810'; ctx.lineWidth=1; ctx.strokeRect(100,460,600,120);
-        ctx.fillStyle='#8a7040'; ctx.font='7px "Press Start 2P"'; ctx.textAlign='left';
+        ctx.fillStyle='rgba(2,5,12,0.92)'; ctx.fillRect(100,460,600,120);
+        ctx.strokeStyle='#1e3050'; ctx.lineWidth=1; ctx.strokeRect(100,460,600,120);
+        ctx.fillStyle='#6080a0'; ctx.font='7px "Press Start 2P"'; ctx.textAlign='left';
         ctx.fillText('Arrow Keys: Move / Select',120,480);
         ctx.fillText('SPACE / Enter: Interact / Confirm',120,496);
         ctx.fillText('[C]: Open Codex (field notes)',120,512);
-        ctx.fillText('Find ★ artifacts for bonus XP + history facts',120,528);
+        ctx.fillText('Find artifacts for bonus XP + history facts',120,528);
         ctx.fillText('Combo streaks deal extra battle damage!',120,544);
         ctx.fillText('Defeat 3 quiz bosses — then reach the Archive.',120,560);
     }
