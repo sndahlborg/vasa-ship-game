@@ -39,21 +39,21 @@ let codexOpen = false, codexPage = 0;
 
 // ── Color Palette ─────────────────────────────────────────────────────────────
 const PAL = {
-    bg: '#0a0f1a', water: '#0a3060', waterLight: '#1a5090',
-    wood: '#6b4020', woodLight: '#8b5a30', woodDark: '#4a2a10',
-    stone: '#7a7560', stoneLight: '#9a9580',
-    wall: '#5a4530', wallTop: '#7a6548',
-    roof: '#3a2a18', sand: '#c8b890', grass: '#3a5a2a', grassLight: '#4a7a38',
-    dock: '#8b6040', dockLight: '#a07050',
-    swBlue: '#006AA7', swYellow: '#FECC02',
-    gold: '#d4a800', parchment: '#f0e8d0', ink: '#1a1208',
+    bg: '#020810', water: '#061824', waterLight: '#0a2030',
+    wood: '#3d2010', woodLight: '#5a3018', woodDark: '#1e0e06',
+    stone: '#3a3830', stoneLight: '#4e4c48',
+    wall: '#2a2420', wallTop: '#3a3228',
+    roof: '#1a0e06', sand: '#5a4e38', grass: '#1a3020', grassLight: '#243d28',
+    dock: '#2a1a0c', dockLight: '#3a2410',
+    swBlue: '#006AA7', swYellow: '#c8a040',
+    gold: '#b89030', parchment: '#f0e8d0', ink: '#1a1208',
     white: '#ffffff', black: '#000000',
     textBg: '#0a1020', textBorder: '#2050a0',
-    hpGreen: '#30c830', hpYellow: '#d8d830', hpRed: '#d83030', xpBlue: '#3070d8',
+    hpGreen: '#28a828', hpYellow: '#b8b828', hpRed: '#b82828', xpBlue: '#2860b8',
     npcCoat: '#1a3a6a', npcSkin: '#ddb890', npcHair: '#c0a060',
-    museum: '#d0c8b8', museumWall: '#b0a898', cannon: '#505050',
-    seaweed: '#2a5a30', rust: '#7a3018', rope: '#a08040',
-    purple: '#7848a8',
+    museum: '#d0c8b8', museumWall: '#b0a898', cannon: '#404038',
+    seaweed: '#1a3820', rust: '#5a2010', rope: '#806030',
+    purple: '#503070',
 };
 
 // ── Prologue ──────────────────────────────────────────────────────────────────
@@ -73,7 +73,7 @@ function buildPrologueScenes() {
 const quizSets = {
     quiz1: {
         name: 'Master Shipwright\'s Challenge',
-        difficulty: { hpLossPerWrong: 35, passThreshold: 4 },
+        difficulty: { hpLossPerWrong: 45, passThreshold: 4 },
         questions: [
             { q: 'Who ordered the Vasa to be built?', options: ['King Gustav II Adolf','Queen Christina','King Karl X','King Erik XIV'], correct: 0, fact: 'Gustav II Adolf (1594–1632) was Sweden\'s warrior king. He wanted the Vasa to project Swedish naval power across the Baltic.' },
             { q: 'How many gun decks did the Vasa have?', options: ['One','Two','Three','Four'], correct: 1, fact: 'The second gun deck was added at the king\'s insistence, raising the center of gravity dangerously above the keel. This was the root cause of the sinking.' },
@@ -87,7 +87,7 @@ const quizSets = {
     },
     quiz2: {
         name: 'The Admiral\'s Test',
-        difficulty: { hpLossPerWrong: 35, passThreshold: 4 },
+        difficulty: { hpLossPerWrong: 45, passThreshold: 4 },
         questions: [
             { q: 'On what date did the Vasa sink?', options: ['July 4, 1628','August 10, 1628','September 15, 1628','October 1, 1628'], correct: 1, fact: 'August 10, 1628 — a Sunday. Crowds had gathered to watch, making the disaster shamefully public for the Swedish Crown.' },
             { q: 'Why did the Vasa sink?', options: ['Struck by lightning','Enemy attack','It was too top-heavy','Rotten wood'], correct: 2, fact: 'A stability test weeks earlier — 30 men running back and forth across the deck — showed catastrophic instability. The results were suppressed.' },
@@ -524,87 +524,125 @@ function drawTile(tx, ty, tile, mapName) {
     const x = tx * TILE, y = ty * TILE;
     const animate = (frameCount + tx * 3 + ty * 7) % 60;
     switch(tile) {
-        case 0: { // deep water — Pokémon style
+        case 0: { // deep water — dark murky harbor
             const wv0 = (frameCount + tx * 5 + ty * 3) % 90;
-            ctx.fillStyle = wv0 < 45 ? '#0a3060' : '#0c3870';
+            ctx.fillStyle = wv0 < 45 ? '#040f18' : '#061824';
             ctx.fillRect(x, y, TILE, TILE);
-            // Drifting shimmer bands
-            if ((tx + ty * 3 + Math.floor(frameCount / 18)) % 5 === 0) {
-                ctx.fillStyle = 'rgba(80,160,240,0.22)';
-                ctx.fillRect(x + 3, y + 9, 20, 4);
+            // Slow dark silt shimmer
+            if ((tx + ty * 3 + Math.floor(frameCount / 30)) % 7 === 0) {
+                ctx.fillStyle = 'rgba(6,24,36,0.6)';
+                ctx.fillRect(x + 3, y + 9, 20, 3);
             }
-            if ((tx * 2 + ty + Math.floor(frameCount / 24)) % 7 === 0) {
-                ctx.fillStyle = 'rgba(100,180,255,0.18)';
-                ctx.fillRect(x + 14, y + 20, 14, 3);
+            if ((tx * 2 + ty + Math.floor(frameCount / 40)) % 9 === 0) {
+                ctx.fillStyle = 'rgba(8,20,30,0.5)';
+                ctx.fillRect(x + 12, y + 20, 14, 2);
             }
-            // Sparkle cross — appears briefly on individual tiles
-            const sparkPhase = (tx * 17 + ty * 31 + Math.floor(frameCount / 6)) % 180;
-            if (sparkPhase < 4) {
-                const sa = (4 - sparkPhase) / 4;
-                ctx.fillStyle = `rgba(255,255,255,${sa * 0.85})`;
-                ctx.fillRect(x + 13, y + 12, 5, 1);
-                ctx.fillRect(x + 15, y + 10, 1, 5);
+            // Occasional floating debris pixel
+            const debrisPhase = (tx * 17 + ty * 31 + Math.floor(frameCount / 20)) % 200;
+            if (debrisPhase < 3) {
+                ctx.fillStyle = 'rgba(30,15,5,0.7)';
+                ctx.fillRect(x + 10, y + 14, 4, 2);
             }
             break;
         }
-        case 1: { // shallow water — lighter, more active
+        case 1: { // shallow water — dark with algae tinge
             const wv1 = (frameCount + tx * 4 + ty * 6) % 60;
-            ctx.fillStyle = wv1 < 30 ? '#1a5090' : '#2060a8';
+            ctx.fillStyle = wv1 < 30 ? '#0a2030' : '#0c2838';
             ctx.fillRect(x, y, TILE, TILE);
-            // Wave lines scrolling
-            if ((tx + ty + Math.floor(frameCount / 10)) % 3 === 0) {
-                ctx.fillStyle = 'rgba(150,200,255,0.28)';
+            // Slow green-tinged murk — algae suggestion
+            if ((tx + ty + Math.floor(frameCount / 18)) % 4 === 0) {
+                ctx.fillStyle = 'rgba(10,40,20,0.35)';
                 ctx.fillRect(x + 2, y + 6, 24, 4);
             }
-            if ((tx + ty + Math.floor(frameCount / 15) + 2) % 3 === 0) {
-                ctx.fillStyle = 'rgba(150,200,255,0.22)';
+            if ((tx + ty + Math.floor(frameCount / 22) + 2) % 4 === 0) {
+                ctx.fillStyle = 'rgba(8,30,15,0.3)';
                 ctx.fillRect(x + 4, y + 18, 20, 3);
             }
-            // Foam sparkle
-            const fPhase = (tx * 13 + ty * 19 + Math.floor(frameCount / 8)) % 120;
-            if (fPhase < 6) {
-                const fa = (6 - fPhase) / 6;
-                ctx.fillStyle = `rgba(255,255,255,${fa * 0.65})`;
-                ctx.fillRect(x + 7, y + 7, 4, 4);
-                ctx.fillRect(x + 19, y + 19, 4, 4);
+            // Dim murk glint
+            const fPhase = (tx * 13 + ty * 19 + Math.floor(frameCount / 15)) % 150;
+            if (fPhase < 4) {
+                const fa = (4 - fPhase) / 4;
+                ctx.fillStyle = `rgba(20,50,40,${fa * 0.5})`;
+                ctx.fillRect(x + 7, y + 7, 3, 3);
+                ctx.fillRect(x + 19, y + 19, 3, 3);
             }
             break;
         }
-        case 2: // wood plank
+        case 2: // wood plank — heavy aged ship planks
             ctx.fillStyle = PAL.wood;
             ctx.fillRect(x, y, TILE, TILE);
+            // Alternating grain direction by tile coordinate
+            if ((tx + ty) % 2 === 0) {
+                // Horizontal grain
+                ctx.fillStyle = PAL.woodDark;
+                ctx.fillRect(x, y + 8, TILE, 1);
+                ctx.fillRect(x, y + 18, TILE, 1);
+                ctx.fillRect(x, y + 26, TILE, 1);
+                ctx.fillStyle = PAL.woodLight;
+                ctx.fillRect(x + 2, y + 3, TILE - 4, 3);
+            } else {
+                // Vertical grain
+                ctx.fillStyle = PAL.woodDark;
+                ctx.fillRect(x + 8, y, 1, TILE);
+                ctx.fillRect(x + 18, y, 1, TILE);
+                ctx.fillRect(x + 26, y, 1, TILE);
+                ctx.fillStyle = PAL.woodLight;
+                ctx.fillRect(x + 3, y + 2, 3, TILE - 4);
+            }
+            // Board edge shadow
             ctx.fillStyle = PAL.woodDark;
-            ctx.fillRect(x, y+TILE-3, TILE, 2);
+            ctx.fillRect(x, y + TILE - 2, TILE, 2);
             ctx.fillRect(x, y, 2, TILE);
-            ctx.fillStyle = PAL.woodLight;
-            ctx.fillRect(x+4, y+4, TILE-8, 4);
+            // Occasional knot detail
+            if ((tx * 7 + ty * 11) % 5 === 0) {
+                ctx.fillStyle = 'rgba(15,6,2,0.6)';
+                ctx.fillRect(x + 14, y + 12, 4, 4);
+                ctx.fillRect(x + 15, y + 11, 2, 6);
+            }
             break;
-        case 3: // stone cobble
+        case 3: // stone cobble — wet harbor stone with moss
             ctx.fillStyle = PAL.stone;
             ctx.fillRect(x, y, TILE, TILE);
             ctx.fillStyle = PAL.stoneLight;
             ctx.fillRect(x+2, y+2, 12, 10);
             ctx.fillRect(x+18, y+14, 10, 8);
-            ctx.fillStyle = 'rgba(0,0,0,0.2)';
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
             ctx.fillRect(x, y+TILE-2, TILE, 2);
             ctx.fillRect(x+TILE-2, y, 2, TILE);
+            // Moss patches in corners
+            ctx.fillStyle = 'rgba(40,80,30,0.6)';
+            if ((tx + ty * 3) % 3 === 0) ctx.fillRect(x + 2, y + 2, 4, 4);
+            if ((tx * 2 + ty) % 4 === 0) ctx.fillRect(x + TILE - 6, y + TILE - 6, 4, 4);
             break;
-        case 4: // stone wall
-            ctx.fillStyle = '#4a4038';
+        case 4: // stone wall — worn masonry with mortar lines
+            ctx.fillStyle = '#282420';
             ctx.fillRect(x, y, TILE, TILE);
-            ctx.fillStyle = '#5a5048';
+            // Brick blocks
+            ctx.fillStyle = '#363230';
             ctx.fillRect(x+2, y+2, TILE-4, 10);
             ctx.fillRect(x+2, y+18, TILE-4, 8);
-            ctx.fillStyle = '#3a3028';
+            // Mortar lines (lighter thin rects between bricks)
+            ctx.fillStyle = '#1e1c18';
+            ctx.fillRect(x, y+14, TILE, 2);
+            ctx.fillRect(x, y+28, TILE, 2);
+            ctx.fillRect(x + TILE/2, y, 1, 14);
+            ctx.fillRect(x + TILE/4, y + 16, 1, 12);
+            ctx.fillStyle = '#1a1814';
             ctx.fillRect(x, y+TILE-2, TILE, 2);
             break;
-        case 5: // wood wall
-            ctx.fillStyle = PAL.woodDark;
+        case 5: // wood wall / seaweed — dark green algae with wave animation
+            ctx.fillStyle = PAL.grass;
             ctx.fillRect(x, y, TILE, TILE);
-            ctx.fillStyle = PAL.wood;
-            ctx.fillRect(x+2, y, 5, TILE);
-            ctx.fillRect(x+14, y, 5, TILE);
-            ctx.fillRect(x+26, y, 4, TILE);
+            // Seaweed strands with slow wave
+            const sw1 = Math.sin(frameCount * 0.05 + tx) * 2;
+            const sw2 = Math.sin(frameCount * 0.05 + tx + 1) * 2;
+            ctx.fillStyle = PAL.grassLight;
+            ctx.fillRect(x + 2 + sw1, y, 3, TILE);
+            ctx.fillRect(x + 12 + sw2, y, 3, TILE);
+            ctx.fillRect(x + 22 + sw1, y, 3, TILE);
+            // Darker base
+            ctx.fillStyle = 'rgba(10,20,12,0.4)';
+            ctx.fillRect(x, y + TILE - 6, TILE, 6);
             break;
         case 6: // roof
             ctx.fillStyle = '#2a1a10';
@@ -612,26 +650,39 @@ function drawTile(tx, ty, tile, mapName) {
             ctx.fillStyle = '#3a2818';
             ctx.fillRect(x+2, y+2, TILE-4, TILE-4);
             break;
-        case 7: // sand
+        case 7: // sand — wet silt/harbor mud
             ctx.fillStyle = PAL.sand;
             ctx.fillRect(x, y, TILE, TILE);
-            ctx.fillStyle = '#b8a880';
-            if ((tx+ty)%3===0) ctx.fillRect(x+8, y+12, 8, 3);
+            ctx.fillStyle = '#4a3e2c';
+            if ((tx+ty)%3===0) ctx.fillRect(x+8, y+12, 8, 2);
+            // Wet sheen
+            ctx.fillStyle = 'rgba(20,30,25,0.25)';
+            if ((tx*3+ty*2)%4===0) ctx.fillRect(x+4, y+4, 10, 6);
             break;
-        case 8: // grass
+        case 8: // grass — seaweed/algae ground
             ctx.fillStyle = PAL.grass;
             ctx.fillRect(x, y, TILE, TILE);
             ctx.fillStyle = PAL.grassLight;
-            if ((tx*3+ty)%4===0) ctx.fillRect(x+4, y+4, 6, 6);
+            if ((tx*3+ty)%4===0) ctx.fillRect(x+4, y+4, 5, 5);
+            // Slight wave animation on clumps
+            const ga = Math.sin(frameCount * 0.05 + tx * 0.7) * 1;
+            ctx.fillStyle = 'rgba(24,48,28,0.5)';
+            if ((tx+ty*2)%3===0) ctx.fillRect(x + 8 + ga, y + 8, 3, 8);
             break;
-        case 9: // dock boards
+        case 9: // dock boards — blackened barnacle-crusted timber
             ctx.fillStyle = PAL.dock;
             ctx.fillRect(x, y, TILE, TILE);
             ctx.fillStyle = PAL.dockLight;
-            ctx.fillRect(x+2, y+2, TILE-4, 6);
-            ctx.fillRect(x+2, y+18, TILE-4, 6);
+            ctx.fillRect(x+2, y+2, TILE-4, 5);
+            ctx.fillRect(x+2, y+18, TILE-4, 5);
             ctx.fillStyle = PAL.woodDark;
             ctx.fillRect(x, y+TILE-2, TILE, 2);
+            // Barnacle dots — scattered by tile coordinate
+            ctx.fillStyle = 'rgba(200,200,190,0.4)';
+            if ((tx * 5 + ty * 3) % 7 < 3) ctx.fillRect(x + 6, y + 10, 2, 2);
+            if ((tx * 3 + ty * 7) % 6 < 2) ctx.fillRect(x + 20, y + 6, 2, 2);
+            if ((tx * 11 + ty * 2) % 8 < 3) ctx.fillRect(x + 14, y + 22, 2, 2);
+            if ((tx * 2 + ty * 9) % 5 < 2) ctx.fillRect(x + 26, y + 14, 2, 2);
             break;
         case 10: // ship hull
             ctx.fillStyle = '#4a2010';
@@ -648,20 +699,25 @@ function drawTile(tx, ty, tile, mapName) {
             ctx.fillStyle = '#8a7858';
             if ((tx+ty)%2===0) ctx.fillRect(x+4, y+4, TILE-8, TILE-8);
             break;
-        case 12: // museum floor
-            ctx.fillStyle = PAL.museum;
+        case 12: // museum floor — worn stone with dim grout lines
+            ctx.fillStyle = '#2a2820';
             ctx.fillRect(x, y, TILE, TILE);
-            ctx.fillStyle = '#c8c0b0';
-            ctx.fillRect(x, y, TILE, 2);
-            ctx.fillRect(x, y, 2, TILE);
-            if ((tx+ty)%2===0) { ctx.fillStyle='#d8d0c0'; ctx.fillRect(x+4, y+4, TILE-8, TILE-8); }
+            ctx.fillStyle = '#343230';
+            ctx.fillRect(x, y, TILE, 1);
+            ctx.fillRect(x, y, 1, TILE);
+            if ((tx+ty)%2===0) { ctx.fillStyle='#3a3835'; ctx.fillRect(x+4, y+4, TILE-8, TILE-8); }
             break;
-        case 13: // museum wall
-            ctx.fillStyle = PAL.museumWall;
+        case 13: // museum wall — deep charcoal stone masonry
+            ctx.fillStyle = '#1e1c18';
             ctx.fillRect(x, y, TILE, TILE);
-            ctx.fillStyle = '#c8c0b0';
+            // Brick blocks
+            ctx.fillStyle = '#2c2a26';
             ctx.fillRect(x+2, y+4, TILE-4, 8);
             ctx.fillRect(x+2, y+20, TILE-4, 6);
+            // Mortar lines
+            ctx.fillStyle = '#161412';
+            ctx.fillRect(x, y+14, TILE, 1);
+            ctx.fillRect(x, y+28, TILE, 1);
             break;
         case 17: // rope coil
             ctx.fillStyle = PAL.wood;
@@ -781,9 +837,9 @@ function drawArtifactSprite(x, y, collected) {
 
 // ── HUD ────────────────────────────────────────────────────────────────────────
 function drawHUD(mapName) {
-    ctx.fillStyle = 'rgba(0,0,0,0.72)';
+    ctx.fillStyle = 'rgba(2,4,8,0.82)';
     ctx.fillRect(0, 0, 800, 36);
-    ctx.fillStyle = PAL.swYellow;
+    ctx.fillStyle = '#6a5030';
     ctx.font = '8px "Press Start 2P"';
     ctx.textAlign = 'left';
     ctx.fillText(mapName, 10, 24);
@@ -791,38 +847,38 @@ function drawHUD(mapName) {
     // Artifact count
     const allArtifacts = Object.values(maps).flatMap(m => m.npcs).filter(n => n.isArtifact);
     const foundArt = allArtifacts.filter(n => playerData.talkedToNpcs.includes(n.id)).length;
-    ctx.fillStyle = foundArt === allArtifacts.length ? PAL.gold : '#a09040';
+    ctx.fillStyle = foundArt === allArtifacts.length ? PAL.gold : '#6a5828';
     ctx.textAlign = 'left';
     ctx.fillText(`★ ${foundArt}/${allArtifacts.length}`, 310, 24);
 
-    ctx.fillStyle = '#a0b0d0';
+    ctx.fillStyle = '#8a7040';
     ctx.textAlign = 'right';
     ctx.fillText(`LV ${playerData.level}  ${playerData.xp} XP`, 790, 24);
 
-    ctx.fillStyle = PAL.hpGreen;
+    ctx.fillStyle = '#28a828';
     ctx.textAlign = 'center';
     ctx.fillText(`${playerData.correctAnswers}/${playerData.questionsAnswered} correct`, 400, 24);
-    ctx.fillStyle = '#5060a0'; ctx.font='7px "Press Start 2P"';
+    ctx.fillStyle = '#3a3020'; ctx.font='7px "Press Start 2P"';
     ctx.fillText('[C] CODEX', 400, 34);
     ctx.textAlign = 'left';
 
     // Quest tracker
     const bY = 46;
-    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillStyle = 'rgba(2,2,4,0.7)';
     ctx.fillRect(580, bY, 210, 62);
-    ctx.strokeStyle = PAL.textBorder;
+    ctx.strokeStyle = '#3a2a12';
     ctx.lineWidth = 1;
     ctx.strokeRect(580, bY, 210, 62);
-    ctx.fillStyle = '#8090b8';
+    ctx.fillStyle = '#5a4828';
     ctx.font = '7px "Press Start 2P"';
     ctx.textAlign = 'left';
     ctx.fillText('TESTIMONIES', 590, bY+14);
     const b = playerData.defeatedBosses;
-    ctx.fillStyle = b.includes('quiz1') ? PAL.hpGreen : '#506080';
+    ctx.fillStyle = b.includes('quiz1') ? '#28a828' : '#303820';
     ctx.fillText(b.includes('quiz1') ? '[+] Shipyard' : '[ ] Shipyard', 590, bY+28);
-    ctx.fillStyle = b.includes('quiz2') ? PAL.hpGreen : '#506080';
+    ctx.fillStyle = b.includes('quiz2') ? '#28a828' : '#303820';
     ctx.fillText(b.includes('quiz2') ? '[+] Harbor' : '[ ] Harbor', 590, bY+42);
-    ctx.fillStyle = b.includes('quiz3') ? PAL.hpGreen : '#506080';
+    ctx.fillStyle = b.includes('quiz3') ? '#28a828' : '#303820';
     ctx.fillText(b.includes('quiz3') ? '[+] Museum' : '[ ] Museum', 590, bY+56);
 }
 
@@ -980,6 +1036,18 @@ function drawOverworld() {
     const sr = Math.floor(camY/TILE), er = Math.min(map.height, sr+21);
     for (let y=sr; y<er; y++) for (let x=sc; x<ec; x++) drawTile(x, y, map.tiles[y][x], playerData.currentMap);
 
+    // ── Atmospheric overlays ──────────────────────────────────────────────────
+    // Fog vignette — darkens edges
+    const vignette = ctx.createRadialGradient(camX+400, camY+300, 150, camX+400, camY+300, 520);
+    vignette.addColorStop(0, 'rgba(0,0,0,0)');
+    vignette.addColorStop(1, 'rgba(0,5,15,0.55)');
+    ctx.fillStyle = vignette;
+    ctx.fillRect(camX, camY, 800, 600);
+    // Subtle green-tinged fog layer
+    const fogAlpha = 0.04 + 0.02 * Math.sin(frameCount * 0.008);
+    ctx.fillStyle = `rgba(10,30,20,${fogAlpha})`;
+    ctx.fillRect(camX, camY, 800, 600);
+
     // NPCs + Artifacts
     const fx = playerData.x+(playerData.dir==='right'?1:playerData.dir==='left'?-1:0);
     const fy = playerData.y+(playerData.dir==='down'?1:playerData.dir==='up'?-1:0);
@@ -1068,32 +1136,38 @@ function updateDialogue() {
 
 function drawDialogue() {
     const boxY = 430, boxH = 150;
-    ctx.fillStyle = 'rgba(0,0,0,0.88)';
+    ctx.fillStyle = 'rgba(15,8,4,0.94)';
     ctx.fillRect(30, boxY, 740, boxH);
-    ctx.strokeStyle = PAL.swYellow;
+    ctx.strokeStyle = '#5a3a18';
     ctx.lineWidth = 2;
     ctx.strokeRect(30, boxY, 740, boxH);
-    ctx.fillStyle = PAL.swYellow;
     ctx.font = '9px "Press Start 2P"';
     ctx.textAlign = 'left';
-    // speaker name
+    // speaker name box
     const map = maps[playerData.currentMap];
     const facingX = playerData.x+(playerData.dir==='right'?1:playerData.dir==='left'?-1:0);
     const facingY = playerData.y+(playerData.dir==='down'?1:playerData.dir==='up'?-1:0);
     const npc = map.npcs.find(n=>n.x===facingX && n.y===facingY);
-    if (npc) ctx.fillText(npc.name, 50, boxY+20);
+    if (npc) {
+        ctx.fillStyle = '#1e0e06';
+        ctx.fillRect(30, boxY - 22, 200, 22);
+        ctx.strokeStyle = '#5a3a18'; ctx.lineWidth = 1;
+        ctx.strokeRect(30, boxY - 22, 200, 22);
+        ctx.fillStyle = '#8a6030';
+        ctx.fillText(npc.name, 50, boxY - 6);
+    }
 
-    ctx.fillStyle = '#d8e0f0';
+    ctx.fillStyle = '#d4c4a0';
     ctx.font = '9px "Press Start 2P"';
     const text = currentDialogue[dialogueIndex].substring(0, dialogueCharIndex);
     wrapText(text, 50, boxY+40, 700, 20);
 
     if (dialogueComplete && Math.floor(frameCount/20)%2===0) {
-        ctx.fillStyle = PAL.swYellow;
+        ctx.fillStyle = '#8a6030';
         ctx.fillRect(740, boxY+boxH-20, 8, 4);
         ctx.fillRect(744, boxY+boxH-16, 4, 4);
     }
-    ctx.fillStyle = '#505878';
+    ctx.fillStyle = '#5a4020';
     ctx.font = '8px "Press Start 2P"';
     ctx.textAlign = 'right';
     if (currentDialogue.length > 1) ctx.fillText(`${dialogueIndex+1}/${currentDialogue.length}`, 760, boxY+boxH-8);
@@ -1115,7 +1189,7 @@ function wrapText(text, x, y, maxWidth, lineHeight) {
 // ── Battle ────────────────────────────────────────────────────────────────────
 function startBattle(npc) {
     const quiz = quizSets[npc.quizKey];
-    const diff = quiz.difficulty || { hpLossPerWrong: 35, passThreshold: 4 };
+    const diff = quiz.difficulty || { hpLossPerWrong: 45, passThreshold: 4 };
     battleState = {
         enemy: npc.name, quizKey: npc.quizKey,
         questions: shuffleArray([...quiz.questions]).slice(0, 5), // pick 5 random from 8
@@ -1218,55 +1292,90 @@ function updateBattle() {
 
 function drawBattleBackground(quizKey) {
     if (quizKey === 'quiz1') {
-        // Shipyard — dark wood planks + forge glow
-        ctx.fillStyle = '#120a04'; ctx.fillRect(0,0,800,600);
-        for (let y=0; y<600; y+=26) {
-            ctx.fillStyle = `rgba(70,35,12,${0.25+Math.sin(y*0.08+frameCount*0.004)*0.08})`;
-            ctx.fillRect(0, y, 800, 24);
-            ctx.fillStyle = 'rgba(40,18,6,0.5)';
-            ctx.fillRect(0, y+24, 800, 2);
+        // Shipyard — half-built ship hull interior, dark wood ribs
+        ctx.fillStyle = '#0d0806'; ctx.fillRect(0,0,800,600);
+        // Vertical curved ship rib stripes
+        for (let rx=60; rx<800; rx+=90) {
+            ctx.fillStyle = `rgba(30,12,4,${0.5+Math.sin(rx*0.02+frameCount*0.003)*0.1})`;
+            ctx.fillRect(rx, 0, 18, 600);
+            ctx.fillStyle = 'rgba(20,8,2,0.7)';
+            ctx.fillRect(rx+18, 0, 2, 600);
         }
-        // Forge glow in corner
-        const fg = Math.sin(frameCount*0.07)*0.12+0.12;
-        const g1 = ctx.createRadialGradient(720,540,10,720,540,180);
-        g1.addColorStop(0,`rgba(255,100,20,${fg})`); g1.addColorStop(1,'rgba(255,60,0,0)');
+        // Scattered sawdust particles — tiny yellow-brown specks
+        for (let i=0; i<18; i++) {
+            const px = (i*73 + frameCount*0.8) % 800;
+            const py = (i*41 + frameCount*0.3) % 500 + 80;
+            ctx.fillStyle = `rgba(100,60,15,${0.25+Math.sin(frameCount*0.04+i)*0.1})`;
+            ctx.fillRect(px, py, 2, 1);
+        }
+        // Dim warm glow from forge — aged amber, not bright
+        const fg = Math.sin(frameCount*0.04)*0.06+0.07;
+        const g1 = ctx.createRadialGradient(720,540,10,720,540,200);
+        g1.addColorStop(0,`rgba(140,60,10,${fg})`); g1.addColorStop(1,'rgba(80,30,0,0)');
         ctx.fillStyle=g1; ctx.fillRect(0,0,800,600);
     } else if (quizKey === 'quiz2') {
-        // Harbor — stormy water + rain
-        ctx.fillStyle = '#05080f'; ctx.fillRect(0,0,800,600);
-        for (let x=0; x<800; x+=42) {
-            const wh = 28 + Math.sin(x*0.05+frameCount*0.04)*14;
-            ctx.fillStyle=`rgba(0,30,70,${0.4+Math.sin(x*0.08+frameCount*0.025)*0.12})`;
-            ctx.fillRect(x, 420+Math.sin(x*0.04+frameCount*0.025)*10, 42, wh+200);
+        // Harbor at night — near-black navy, listing Vasa silhouette, dark water shimmer
+        ctx.fillStyle = '#040810'; ctx.fillRect(0,0,800,600);
+        // Dark water shimmer at bottom quarter
+        for (let wx=0; wx<800; wx+=40) {
+            const wh = 10 + Math.sin(wx*0.04+frameCount*0.025)*6;
+            ctx.fillStyle = `rgba(4,18,30,${0.5+Math.sin(wx*0.06+frameCount*0.02)*0.1})`;
+            ctx.fillRect(wx, 440+Math.sin(wx*0.03+frameCount*0.02)*8, 40, wh+160);
         }
-        for (let i=0; i<22; i++) {
-            const rx=(i*73+frameCount*5)%800, ry=(i*41+frameCount*7)%480;
-            ctx.fillStyle='rgba(160,210,255,0.25)';
-            ctx.fillRect(rx-1, ry, 2, 9);
+        // Vasa silhouette tilting — simple rects suggesting listing hull
+        ctx.save();
+        ctx.translate(300, 380);
+        ctx.rotate(0.18); // tilt to suggest listing
+        ctx.fillStyle = 'rgba(8,4,2,0.85)';
+        ctx.fillRect(-100, -20, 200, 30);  // hull
+        ctx.fillRect(-90, -40, 180, 22);   // upper hull
+        ctx.fillRect(-8, -100, 6, 62);     // foremast
+        ctx.fillRect(30, -130, 5, 92);     // mainmast
+        ctx.fillStyle = 'rgba(15,8,4,0.5)';
+        ctx.fillRect(-6, -95, 20, 30);     // sail remnant
+        ctx.fillRect(32, -125, 16, 40);    // sail remnant 2
+        ctx.restore();
+        // Floating debris
+        for (let i=0; i<4; i++) {
+            const dx = (i*180 + frameCount*0.4) % 800;
+            const dy = 460 + Math.sin(frameCount*0.03+i)*5;
+            ctx.fillStyle = 'rgba(20,10,5,0.6)';
+            ctx.fillRect(dx, dy, 8+i*2, 3);
         }
-        // Lightning flash
-        if (frameCount%180 < 3) { ctx.fillStyle='rgba(200,230,255,0.08)'; ctx.fillRect(0,0,800,600); }
     } else if (quizKey === 'quiz3') {
-        // Museum ghost — ethereal fog + wisps
-        ctx.fillStyle = '#080d15'; ctx.fillRect(0,0,800,600);
-        for (let i=0; i<7; i++) {
-            const gx=(i*130+Math.sin(frameCount*0.01+i)*40+frameCount*0.2)%900-50;
-            const gy=220+Math.cos(frameCount*0.007+i*0.9)*70;
-            const gr = ctx.createRadialGradient(gx,gy,0,gx,gy,90+Math.sin(frameCount*0.03+i)*20);
-            gr.addColorStop(0,`rgba(60,100,180,${Math.sin(frameCount*0.04+i)*0.04+0.06})`);
-            gr.addColorStop(1,'rgba(30,60,120,0)');
-            ctx.fillStyle=gr; ctx.fillRect(0,0,800,600);
+        // Underwater wreck — near darkness, pale bioluminescent glow, slow bubbles
+        ctx.fillStyle = '#020810'; ctx.fillRect(0,0,800,600);
+        // Faint hull timbers as dark diagonal rects
+        for (let i=0; i<5; i++) {
+            ctx.save();
+            ctx.translate(80 + i*130, 300);
+            ctx.rotate(-0.15 + i*0.06);
+            ctx.fillStyle = `rgba(10,8,6,${0.5+i*0.05})`;
+            ctx.fillRect(-6, -200, 12, 400);
+            ctx.restore();
+        }
+        // Pale bioluminescent ghost glow
+        const gl = ctx.createRadialGradient(400,300,20,400,300,180);
+        gl.addColorStop(0,`rgba(60,120,160,${0.06+Math.sin(frameCount*0.03)*0.02})`);
+        gl.addColorStop(1,'rgba(10,30,50,0)');
+        ctx.fillStyle=gl; ctx.fillRect(0,0,800,600);
+        // Slow-rising bubbles
+        for (let i=0; i<5; i++) {
+            const bx = 150 + i*130 + Math.sin(frameCount*0.02+i)*10;
+            const by = ((frameCount*0.6 + i*120) % 600);
+            ctx.fillStyle = `rgba(60,100,140,${0.15+Math.sin(frameCount*0.05+i)*0.05})`;
+            ctx.beginPath(); ctx.arc(bx, 600-by, 2+i%2, 0, Math.PI*2); ctx.fill();
         }
     } else {
         const bg = ctx.createLinearGradient(0,0,0,600);
-        bg.addColorStop(0,'#060c18'); bg.addColorStop(1,'#0a1828');
+        bg.addColorStop(0,'#030810'); bg.addColorStop(1,'#061020');
         ctx.fillStyle=bg; ctx.fillRect(0,0,800,600);
     }
-    // Ambient stars
-    for (let i=0; i<20; i++) {
-        const sx=(i*37+frameCount*0.3)%800, sy=(i*53+frameCount*0.15)%280;
-        ctx.fillStyle=`rgba(200,220,255,${(Math.sin(frameCount*0.05+i)*0.25+0.35)*0.5})`;
-        ctx.fillRect(sx,sy,2,2);
+    // Dim ambient particle drift (replaces bright stars)
+    for (let i=0; i<12; i++) {
+        const sx=(i*37+frameCount*0.2)%800, sy=(i*53+frameCount*0.1)%280;
+        ctx.fillStyle=`rgba(120,140,160,${(Math.sin(frameCount*0.04+i)*0.15+0.2)*0.4})`;
+        ctx.fillRect(sx,sy,1,1);
     }
 }
 
@@ -1405,18 +1514,22 @@ function wrapTextCentered(text, cx, y, maxWidth, lh) {
 
 // ── Victory ───────────────────────────────────────────────────────────────────
 function drawVictory() {
-    ctx.fillStyle = '#060c18'; ctx.fillRect(0, 0, 800, 600);
-    if (frameCount%5===0) spawnParticles(Math.random()*800, -10, ['#fcd116','#006aa7','#ffffff'][Math.floor(Math.random()*3)], 3);
+    const vbg = ctx.createLinearGradient(0,0,0,600);
+    vbg.addColorStop(0,'#020608'); vbg.addColorStop(1,'#04100e');
+    ctx.fillStyle = vbg; ctx.fillRect(0, 0, 800, 600);
+    if (frameCount%8===0) spawnParticles(Math.random()*800, -10, ['#b89030','#3a5820','#8a7040'][Math.floor(Math.random()*3)], 2);
 
     ctx.textAlign = 'center';
     const t = Math.min(1, battleState.resultTimer/30);
+    ctx.shadowColor='#6a4818'; ctx.shadowBlur=6;
     ctx.fillStyle = PAL.swYellow; ctx.font = '24px "Press Start 2P"';
     ctx.fillText('VICTORY!', 400, 80*t+60);
-    ctx.fillStyle = '#c0d0e8'; ctx.font = '12px "Press Start 2P"';
+    ctx.shadowBlur=0; ctx.shadowColor='transparent';
+    ctx.fillStyle = '#8a7850'; ctx.font = '12px "Press Start 2P"';
     ctx.fillText(`${battleState.enemy} defeated!`, 400, 160);
-    ctx.fillStyle = PAL.xpBlue; ctx.font = '14px "Press Start 2P"';
+    ctx.fillStyle = '#4a6838'; ctx.font = '14px "Press Start 2P"';
     ctx.fillText(`+100 XP`, 400, 220);
-    ctx.fillStyle = '#a0b0d0'; ctx.font = '10px "Press Start 2P"';
+    ctx.fillStyle = '#6a5a38'; ctx.font = '10px "Press Start 2P"';
     ctx.fillText(`Level: ${playerData.level}`, 400, 280);
     ctx.fillText(`Total Correct: ${playerData.correctAnswers}/${playerData.questionsAnswered}`, 400, 310);
 
@@ -1427,7 +1540,7 @@ function drawVictory() {
     };
     ctx.fillStyle = PAL.swYellow; ctx.font = '10px "Press Start 2P"';
     ctx.fillText('KEY LEARNING:', 400, 370);
-    ctx.fillStyle = '#c0d0e8'; ctx.font = '9px "Press Start 2P"';
+    ctx.fillStyle = '#8a7850'; ctx.font = '9px "Press Start 2P"';
     (learnings[battleState.quizKey]||'').split('\n').forEach((l,i) => ctx.fillText(l, 400, 400+i*20));
 
     if (battleState.resultTimer > 60) {
@@ -1436,11 +1549,11 @@ function drawVictory() {
             quiz2: '333 years pass... The Vasa is raised from the deep.',
             quiz3: 'One more step. Travel to the Archive.'
         };
-        ctx.fillStyle = '#70d070'; ctx.font = '10px "Press Start 2P"';
+        ctx.fillStyle = '#4a7038'; ctx.font = '10px "Press Start 2P"';
         ctx.fillText(nextHints[battleState.quizKey]||'', 400, 480);
     }
     if (battleState.resultTimer > 60 && Math.floor(frameCount/20)%2===0) {
-        ctx.fillStyle = '#8090b0'; ctx.font='8px "Press Start 2P"';
+        ctx.fillStyle = '#5a4828'; ctx.font='8px "Press Start 2P"';
         ctx.fillText('Press SPACE to continue', 400, 560);
     }
     battleState.resultTimer++;
@@ -1845,69 +1958,77 @@ function updateTitle() {
 
 function drawTitle() {
     const bg=ctx.createLinearGradient(0,0,0,600);
-    bg.addColorStop(0,'#04080f'); bg.addColorStop(0.6,'#080f1e'); bg.addColorStop(1,'#0a1828');
+    bg.addColorStop(0,'#020810'); bg.addColorStop(0.6,'#030c18'); bg.addColorStop(1,'#040f1a');
     ctx.fillStyle=bg; ctx.fillRect(0,0,800,600);
 
-    // Animated water
+    // Dark murky water at base
     for(let x=0;x<800;x+=32) {
-        const h=20+Math.sin((x/60)+frameCount*0.02)*8;
-        ctx.fillStyle=`rgba(0,60,120,${0.3+Math.sin(x*0.05+frameCount*0.03)*0.1})`;
+        const h=18+Math.sin((x/60)+frameCount*0.015)*6;
+        ctx.fillStyle=`rgba(3,15,28,${0.5+Math.sin(x*0.05+frameCount*0.02)*0.08})`;
         ctx.fillRect(x,580-h,32,h+20);
     }
 
-    // Static large ship silhouette left
-    ctx.fillStyle='rgba(40,20,10,0.7)';
-    ctx.fillRect(80,490,300,20); ctx.fillRect(100,480,260,12); ctx.fillRect(120,440,6,42); ctx.fillRect(180,400,4,82);
-    ctx.fillStyle='rgba(30,15,8,0.5)';
-    ctx.fillRect(130,440,50,42); ctx.fillRect(184,400,40,80);
-    // Small ship sailing across the water
-    const shipX = (frameCount * 0.6 + 100) % 1000 - 100;
-    const shipBob = Math.sin(frameCount * 0.04) * 3;
-    ctx.fillStyle='rgba(50,25,10,0.8)';
-    ctx.fillRect(shipX, 556+shipBob, 80, 10);
-    ctx.fillRect(shipX+8, 548+shipBob, 64, 10);
-    ctx.fillRect(shipX+34, 520+shipBob, 3, 30);
-    ctx.fillRect(shipX+50, 508+shipBob, 3, 42);
-    ctx.fillStyle='rgba(240,220,180,0.4)';
-    ctx.fillRect(shipX+37, 522+shipBob, 18, 18); // sail
-    ctx.fillRect(shipX+53, 510+shipBob, 14, 26); // sail 2
+    // Slow rising bubbles in background
+    for(let i=0;i<10;i++){
+        const bx=(i*80+20+Math.sin(frameCount*0.015+i)*8)%800;
+        const by=600-((frameCount*0.5+i*60)%620);
+        ctx.fillStyle=`rgba(20,50,70,${0.12+Math.sin(frameCount*0.04+i)*0.04})`;
+        ctx.beginPath(); ctx.arc(bx, by, 1+i%3, 0, Math.PI*2); ctx.fill();
+    }
 
-    // Stars
-    for(let i=0;i<50;i++){const sx=(i*47)%800,sy=(i*31)%300;ctx.fillStyle=`rgba(200,220,255,${(Math.sin(frameCount*0.03+i)*0.4+0.5)*0.7})`;ctx.fillRect(sx,sy,2,2);}
+    // Sunken ship silhouette — tilted, at the bottom, like it's resting on seabed
+    ctx.save();
+    ctx.translate(200, 500);
+    ctx.rotate(0.05);
+    ctx.fillStyle='rgba(10,5,2,0.8)';
+    ctx.fillRect(-140, -18, 280, 28);  // hull
+    ctx.fillRect(-120, -34, 240, 18);  // upper hull
+    ctx.fillRect(-18, -110, 7, 80);    // foremast
+    ctx.fillRect(40, -140, 6, 110);    // mainmast
+    ctx.fillStyle='rgba(15,8,3,0.45)';
+    ctx.fillRect(-14, -106, 22, 36);   // decayed sail
+    ctx.fillRect(42, -136, 18, 50);    // decayed sail 2
+    ctx.restore();
+
+    // Dim stars — very faint, like murk particles
+    for(let i=0;i<30;i++){const sx=(i*47)%800,sy=(i*31)%280;ctx.fillStyle=`rgba(80,100,120,${(Math.sin(frameCount*0.025+i)*0.2+0.3)*0.5})`;ctx.fillRect(sx,sy,1,1);}
 
     ctx.textAlign='center';
-    // Title
+    // Title — aged brass with glow
+    ctx.shadowColor='#8a6020'; ctx.shadowBlur=8;
     ctx.fillStyle=PAL.swYellow; ctx.font='36px "Press Start 2P"';
     ctx.fillText('VASA', 400, 120);
-    ctx.fillStyle='rgba(252,209,22,0.7)'; ctx.font='14px "Press Start 2P"';
+    ctx.shadowBlur=4;
+    ctx.fillStyle='rgba(200,160,60,0.75)'; ctx.font='14px "Press Start 2P"';
     ctx.fillText('THE SUNKEN PRIDE', 400, 158);
-    ctx.strokeStyle=PAL.swBlue; ctx.lineWidth=2;
+    ctx.shadowBlur=0; ctx.shadowColor='transparent';
+    ctx.strokeStyle='rgba(90,58,24,0.6)'; ctx.lineWidth=2;
     ctx.beginPath(); ctx.moveTo(200,170); ctx.lineTo(600,170); ctx.stroke();
-    ctx.fillStyle='#8090b0'; ctx.font='8px "Press Start 2P"';
+    ctx.fillStyle='#5a4828'; ctx.font='8px "Press Start 2P"';
     ctx.fillText('An Educational Adventure — Stockholm, 1628', 400, 195);
 
-    // Swedish flag colors bar
-    ctx.fillStyle=PAL.swBlue; ctx.fillRect(0,215,800,4);
-    ctx.fillStyle=PAL.swYellow; ctx.fillRect(0,219,800,4);
+    // Dark divider bar
+    ctx.fillStyle='rgba(40,25,8,0.6)'; ctx.fillRect(0,215,800,4);
+    ctx.fillStyle='rgba(60,38,12,0.4)'; ctx.fillRect(0,219,800,4);
 
     // Menu
     const opts=['START GAME','HOW TO PLAY'];
     opts.forEach((o,i)=>{
         const selected=titleSelection===i;
-        ctx.fillStyle=selected?'rgba(0,106,167,0.4)':'rgba(0,0,0,0.3)';
+        ctx.fillStyle=selected?'rgba(40,20,5,0.6)':'rgba(5,3,1,0.5)';
         ctx.fillRect(260,340+i*60,280,44);
-        ctx.strokeStyle=selected?PAL.swYellow:PAL.textBorder;
+        ctx.strokeStyle=selected?PAL.swYellow:'#3a2810';
         ctx.lineWidth=selected?2:1; ctx.strokeRect(260,340+i*60,280,44);
-        ctx.fillStyle=selected?PAL.swYellow:'#8090b0';
+        ctx.fillStyle=selected?PAL.swYellow:'#5a4020';
         ctx.font='10px "Press Start 2P"'; ctx.textAlign='center';
         ctx.fillText(o,400,368+i*60);
         if(selected&&Math.floor(titleBlink/15)%2===0){ctx.fillStyle=PAL.swYellow;ctx.fillText('>',248,368+i*60);}
     });
 
     if (titleSelection===1) {
-        ctx.fillStyle='rgba(0,0,0,0.85)'; ctx.fillRect(100,460,600,120);
-        ctx.strokeStyle=PAL.swBlue; ctx.lineWidth=1; ctx.strokeRect(100,460,600,120);
-        ctx.fillStyle='#c0d0e0'; ctx.font='7px "Press Start 2P"'; ctx.textAlign='left';
+        ctx.fillStyle='rgba(5,3,1,0.92)'; ctx.fillRect(100,460,600,120);
+        ctx.strokeStyle='#3a2810'; ctx.lineWidth=1; ctx.strokeRect(100,460,600,120);
+        ctx.fillStyle='#8a7040'; ctx.font='7px "Press Start 2P"'; ctx.textAlign='left';
         ctx.fillText('Arrow Keys: Move / Select',120,480);
         ctx.fillText('SPACE / Enter: Interact / Confirm',120,496);
         ctx.fillText('[C]: Open Codex (field notes)',120,512);
